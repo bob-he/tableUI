@@ -1,0 +1,82 @@
+.table {
+  background-color: transparent;
+  border-spacing: 0;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table > thead > tr > th {
+  height: 36px;
+  padding: 5px 8px;
+  text-align: left;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #e1e5f3;
+  vertical-align: middle;
+}
+
+.table-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+.table > tbody > tr > td {
+  padding: 5px 8px;
+  height: 36px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #e1e5f3;
+}
+
+.table > tbody > tr:hover > td,
+.table > tbody > tr.table-row-hover > td {
+  background-color: #eaf8fe;
+}
+
+.table-fixed-column {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.table-fixed-column-shadow {
+  box-shadow: 0 0 8px #CCCCCC;
+}
+
+.table-scroll {
+  overflow: scroll;
+}
+
+.table-scroll-shadow:before {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  right: -2px;
+  box-shadow: 0 0 8px #CCCCCC;
+}
+
+.table-absolute-header {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.table-fixed-header {
+  padding-bottom: 8px;
+  position: fixed;
+  top: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.table-fixed-header > .table-fixed-header-inner {
+  overflow: hidden;
+  box-shadow: 0 0 5px #DDDDDD;
+}
+
+.table-fixed-header .table-scroll,
+.table-absolute-header .table-scroll {
+  overflow: hidden;
+}
