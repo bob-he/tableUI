@@ -5,14 +5,15 @@ import Table from '../src/index.jsx'
 const Page = React.createClass({
   render: function() {
     return (
-      <div style={{width: 900, padding: '10px'}}>
+      <div style={{width: 600, padding: '10px'}}>
         <Table
           fixedHeader
           className="table-bordered"
           width="100%"
           columns={[
-            {key: 'y0', title: '机锋', fixed: 'left'},
-            {key: 'y1', title: 'UC', render: item => {return 1}},
+            {key: 'x', title: '时间', fixed: 'left', render: (val) => {return <div style={{'whiteSpace': 'nowrap'}}>{val}</div>}},
+            {key: 'y0', title: '机锋机锋机锋机锋机锋机锋机锋机锋机锋机锋机锋机锋'},
+            {key: 'y1', title: 'UC', render: (val) => {return <div>{(val * 100) + '%'}</div>}},
             {key: 'y2', title: '华为商店华为商店'},
             {key: 'y3', title: '联想游戏中心'},
             {key: 'y4', title: '陌陌游戏'},
@@ -56,7 +57,7 @@ const Page = React.createClass({
               'y0': 0.7143,
               'y1': 0.0682,
               'y2': 0.16,
-              'y3': 0.5556,
+              'y3': "0.55565556>5556555655565556",
               'y4': 0.1026,
               'y5': 0.25,
               'y6': 0.6667,

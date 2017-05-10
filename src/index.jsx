@@ -16,6 +16,7 @@ export default React.createClass({
     return {
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: true,
+      rowHeights: [],
       columnHeights: {},
       columnWidths: {},
       rowMouseover: {}
@@ -43,17 +44,26 @@ export default React.createClass({
 
   setTableOffset() {
     const columns = _.keys(this.refs).filter(item => {
-      return item.indexOf('columnWidth_') > -1
+      return item.indexOf('column_') > -1
     })
     let columnWidths = {}
     let columnHeights = {}
     columns.forEach(col => {
       const offset = this.refs[col].getBoundingClientRect()
+      const style = window.getComputedStyle(this.refs[col], null)
       columnHeights[col.split('_')[1]] = offset.height
-      columnWidths[col.split('_')[1]] = offset.width
+      columnWidths[col.split('_')[1]] = offset.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - parseFloat(style.marginLeft) - parseFloat(style.marginRight)
+    })
+    const rows = _.keys(this.refs).filter(item => {
+      return item.indexOf('row_') > -1
+    })
+    const rowHeights = rows.map(row => {
+      const offset = this.refs[row].getBoundingClientRect()
+      return offset.height
     })
     const tableOffset = this.refs.table.getBoundingClientRect()
     this.setState({
+      rowHeights: rowHeights,
       columnHeights: columnHeights,
       columnWidths: columnWidths,
       tableWidth: tableOffset.width
@@ -85,12 +95,15 @@ export default React.createClass({
 
   handleHorizontalScroll() {
     const {tableWidth} = this.state
+    const {fixedHeader} = this.props
     const {scrollLeft, scrollWidth} = this.refs.scroll
     this.setState({
       'tableFixedColumnShadow': scrollLeft > 0,
       'tableScrollShadow': (tableWidth + scrollLeft) !== scrollWidth
     })
-    this.refs.headerScroll.scrollLeft = scrollLeft
+    if (fixedHeader) {
+      this.refs.headerScroll.scrollLeft = scrollLeft
+    }
   },
 
   // 表格header
@@ -100,7 +113,7 @@ export default React.createClass({
     const thColumns = columns.map(item => {
       return (
         <th key={item.key}
-          ref={`columnWidth_${item.key}`}
+          ref={`column_${item.key}`}
           style={{height: columnHeights[item.key]}}
         >
           <div style={{width: columnWidths[item.key]}}>
@@ -138,16 +151,24 @@ export default React.createClass({
   },
 
   // 表格boody
-  renderBody(leftColumn) {
-    const {rowMouseover} = this.state
+  renderBody() {
+    const {rowMouseover, rowHeights} = this.state
     const {data, columns} = this.props
     const rows = data.map((row, i) => {
       const tdColumns = columns.map(col => {
-        return <td key={col.key}>{row[col.key]}</td>
+        let value = row[col.key]
+        if (col.render) {
+          value = col.render(row[col.key], row, i)
+        }
+        return (
+          <td key={col.key}>{value}</td>
+        )
       })
       return (
         <tr key={i}
+          ref={`row_${i}`}
           className={rowMouseover[i]}
+          style={{height: rowHeights[i]}}
           onMouseOut={this.handleRowMouseout}
           onMouseOver={this.handleRowMouseover.bind(this, i)}
         >
@@ -161,21 +182,26 @@ export default React.createClass({
   },
 
   renderFixedColumnBody() {
-    const {rowMouseover} = this.state
+    const {rowMouseover, rowHeights} = this.state
     const {data, columns} = this.props
     const rows = data.map((row, i) => {
       const tdColumns = columns.map(col => {
+        let value = row[col.key]
+        if (col.render) {
+          value = col.render(row[col.key], row, i)
+        }
         return (
           <td key={col.key}
             style={{display: col.fixed ? '' : 'none'}}
           >
-            {row[col.key]}
+            {value}
           </td>
         )
       })
       return (
         <tr key={i}
           className={rowMouseover[i]}
+          style={{height: rowHeights[i]}}
           onMouseOut={this.handleRowMouseout}
           onMouseOver={this.handleRowMouseover.bind(this, i)}
         >

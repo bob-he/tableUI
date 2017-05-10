@@ -16,7 +16,7 @@
   height: 36px;
   padding: 5px 8px;
   text-align: left;
-  background-color: #FFFFFF;
+  background-color: #eef2f9;
   border-bottom: 1px solid #e1e5f3;
   vertical-align: middle;
 }
@@ -45,11 +45,11 @@
 }
 
 .table-fixed-column-shadow {
-  box-shadow: 0 0 8px #CCCCCC;
+  box-shadow: 2px 0 20px 2px #EEEEEE;
 }
 
 .table-scroll {
-  overflow: scroll;
+  overflow-x: scroll;
 }
 
 .table-scroll-shadow:before {
@@ -60,7 +60,7 @@
   top: 0;
   bottom: 0;
   right: -2px;
-  box-shadow: 0 0 8px #CCCCCC;
+  box-shadow: -5px 0 20px 2px #DDDDDD;
 }
 
 .table-absolute-header {
