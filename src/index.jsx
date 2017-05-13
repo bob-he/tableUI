@@ -1,5 +1,9 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import classNames from 'classnames'
+import TableHeader from './tableHeader.jsx'
+import TableRow from './tableRow.jsx'
+import {setNodeOffset, formatterData} from './utils.js'
 import _ from 'lodash'
 import './style.css'
 
@@ -16,10 +20,9 @@ export default React.createClass({
     return {
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: true,
-      rowHeights: [],
-      columnHeights: {},
-      columnWidths: {},
-      rowMouseover: {}
+      rowOffsets: [],
+      columnOffsets: [],
+      rowClass: {}
     }
   },
 
@@ -32,7 +35,7 @@ export default React.createClass({
       this.refs.scroll.onscroll = this.handleHorizontalScroll
     }
     const index = _.findIndex(columns, 'fixed')
-    if (index > -1) {
+    if (index > -1 || fixedHeader) {
       this.setTableOffset()
     }
   },
@@ -43,36 +46,19 @@ export default React.createClass({
   },
 
   setTableOffset() {
-    const columns = _.keys(this.refs).filter(item => {
-      return item.indexOf('column_') > -1
-    })
-    let columnWidths = {}
-    let columnHeights = {}
-    columns.forEach(col => {
-      const offset = this.refs[col].getBoundingClientRect()
-      const style = window.getComputedStyle(this.refs[col], null)
-      columnHeights[col.split('_')[1]] = offset.height
-      columnWidths[col.split('_')[1]] = offset.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - parseFloat(style.marginLeft) - parseFloat(style.marginRight)
-    })
-    const rows = _.keys(this.refs).filter(item => {
-      return item.indexOf('row_') > -1
-    })
-    const rowHeights = rows.map(row => {
-      const offset = this.refs[row].getBoundingClientRect()
-      return offset.height
-    })
     const tableOffset = this.refs.table.getBoundingClientRect()
+    const tableTbody = ReactDOM.findDOMNode(this.refs.tableTbody)
+    const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     this.setState({
-      rowHeights: rowHeights,
-      columnHeights: columnHeights,
-      columnWidths: columnWidths,
+      rowOffsets: setNodeOffset(tableTbody.querySelectorAll('tr')),
+      columnOffsets: setNodeOffset(tableHeader.querySelectorAll('th')),
       tableWidth: tableOffset.width
     })
   },
 
   handleRowMouseover(i) {
     this.setState({
-      rowMouseover: {
+      rowClass: {
         [i]: 'table-row-hover'
       }
     })
@@ -80,7 +66,7 @@ export default React.createClass({
 
   handleRowMouseout() {
     this.setState({
-      rowMouseover: {}
+      rowClass: {}
     })
   },
 
@@ -106,136 +92,35 @@ export default React.createClass({
     }
   },
 
-  // 表格header
-  renderHeader() {
-    const {columns} = this.props
-    const {columnHeights, columnWidths} = this.state
-    const thColumns = columns.map(item => {
-      return (
-        <th key={item.key}
-          ref={`column_${item.key}`}
-          style={{height: columnHeights[item.key]}}
-        >
-          <div style={{width: columnWidths[item.key]}}>
-            {item.title}
-          </div>
-        </th>
-      )
-    })
-    return (
-      <thead>
-        <tr>{thColumns}</tr>
-      </thead>
-    )
-  },
-
-  renderFixedColumnHeader() {
-    const {columns} = this.props
-    const {columnHeights, columnWidths} = this.state
-    const thColumns = columns.map((item, i) => {
-      const thStyle = {
-        height: columnHeights[item.key],
-        display: item.fixed ? '' : 'none'
-      }
-      return (
-        <th key={item.key} style={thStyle}>
-          <div style={{width: columnWidths[item.key]}}>{item.title}</div>
-        </th>
-      )
-    })
-    return (
-      <thead>
-        <tr>{thColumns}</tr>
-      </thead>
-    )
-  },
-
   // 表格boody
-  renderBody() {
-    const {rowMouseover, rowHeights} = this.state
+  renderBody(isFixedCloumn) {
+    const {rowClass, rowOffsets} = this.state
     const {data, columns} = this.props
-    const rows = data.map((row, i) => {
-      const tdColumns = columns.map(col => {
-        let value = row[col.key]
-        if (col.render) {
-          value = col.render(row[col.key], row, i)
-        }
-        return (
-          <td key={col.key}>{value}</td>
-        )
-      })
+    const newData = formatterData(data)
+    const rows = newData.map((row, i) => {
       return (
-        <tr key={i}
-          ref={`row_${i}`}
-          className={rowMouseover[i]}
-          style={{height: rowHeights[i]}}
-          onMouseOut={this.handleRowMouseout}
-          onMouseOver={this.handleRowMouseover.bind(this, i)}
-        >
-          {tdColumns}
-        </tr>
+        <TableRow key={i}
+          data={row}
+          columns={columns}
+          className={rowClass[i]}
+          isFixedCloumn={isFixedCloumn}
+          onMouseout={this.handleRowMouseout}
+          onMouseover={this.handleRowMouseover.bind(this, i)}
+          height={rowOffsets[i] && rowOffsets[i].height} />
       )
     })
     return (
-      <tbody>{rows}</tbody>
+      <tbody ref={isFixedCloumn ? '' : 'tableTbody'}>{rows}</tbody>
     )
   },
 
-  renderFixedColumnBody() {
-    const {rowMouseover, rowHeights} = this.state
-    const {data, columns} = this.props
-    const rows = data.map((row, i) => {
-      const tdColumns = columns.map(col => {
-        let value = row[col.key]
-        if (col.render) {
-          value = col.render(row[col.key], row, i)
-        }
-        return (
-          <td key={col.key}
-            style={{display: col.fixed ? '' : 'none'}}
-          >
-            {value}
-          </td>
-        )
-      })
-      return (
-        <tr key={i}
-          className={rowMouseover[i]}
-          style={{height: rowHeights[i]}}
-          onMouseOut={this.handleRowMouseout}
-          onMouseOver={this.handleRowMouseover.bind(this, i)}
-        >
-          {tdColumns}
-        </tr>
-      )
-    })
-    return (
-      <tbody>{rows}</tbody>
-    )
-  },
-
-  renderColGroup() {
+  renderColGroup(isFixedCloumn) {
     const {columns} = this.props
-    const {columnWidths} = this.state
-    const colgroup = columns.map((item, i) => {
-      return (
-        <col style={{width: columnWidths[item.key]}} key={item.key} />
-      )
-    })
-    return <colgroup>{colgroup}</colgroup>
-  },
-
-  renderFixedColumnColGroup() {
-    const {columns} = this.props
-    const {columnWidths} = this.state
-    const colgroup = columns.map((item, i) => {
-      const colStyle = {
-        width: columnWidths[item.key],
-        display: item.fixed ? '' : 'none'
-      }
-      return (
-        <col key={item.key} style={colStyle} />
-      )
+    const {columnOffsets} = this.state
+    const colgroup = columns.map((col, i) => {
+      return (!isFixedCloumn || col.fixed) ? (
+        <col style={{width: columnOffsets[i] && columnOffsets[i].width}} key={col.key} />
+      ) : null
     })
     return <colgroup>{colgroup}</colgroup>
   },
@@ -243,7 +128,7 @@ export default React.createClass({
   // 表格
   renderTable(isFixedHeader) {
     const {width, columns} = this.props
-    const {tableFixedColumnShadow, tableScrollShadow} = this.state
+    const {tableFixedColumnShadow, tableScrollShadow, columnOffsets} = this.state
     const index = _.findIndex(columns, 'fixed')
     if (index > 0) {
       return console.error('请正确配置columns')
@@ -255,15 +140,18 @@ export default React.createClass({
     const fixedColumn = (
       <div className={fixedColumnStyle}>
         <table className="table" width={width}>
-          {this.renderFixedColumnColGroup()}
-          {this.renderFixedColumnHeader()}
-          {!isFixedHeader && this.renderFixedColumnBody()}
+          {this.renderColGroup(true)}
+          <TableHeader isFixedCloumn
+            columns={columns}
+            offsets={columnOffsets}
+            isFixedHeader={isFixedHeader} />
+          {!isFixedHeader && this.renderBody(true)}
         </table>
       </div>
     )
     const headerRef = isFixedHeader ? `headerScroll` : `scroll`
     const tableScrollStyle = classNames(
-      'table-scroll',
+      {'table-scroll': index > -1},
       {'table-scroll-shadow': index > -1 && tableScrollShadow}
     )
     return (
@@ -272,7 +160,10 @@ export default React.createClass({
         <div ref={headerRef} className={tableScrollStyle}>
           <table className="table" width={width}>
             {this.renderColGroup()}
-            {this.renderHeader()}
+            <TableHeader columns={columns}
+              ref={isFixedHeader ? '' : 'tableHeader'}
+              isFixedHeader={isFixedHeader}
+              offsets={columnOffsets} />
             {!isFixedHeader && this.renderBody()}
           </table>
         </div>

@@ -87,3 +87,11 @@
 .table-absolute-header .table-scroll {
   overflow: hidden;
 }
+
+.table-row-indent {
+  padding-left: 20px;
+}
+
+.table-row-expand-icon {
+  padding-right: 5px;
+}
