@@ -23,7 +23,23 @@ export function setNodeOffset(nodes) {
   return offsets
 }
 
-export function formatterData(data) {
+// export function formatterData(data, child, index) {
+//   let newData = []
+//   data.forEach((item, i) => {
+//     newData.push(item)
+//     if (i === index) {
+//       newData = newData.concat(child.map(child => {
+//         return {
+//           ...child,
+//           isChild: true
+//         }
+//       }))
+//     }
+//   })
+//   return newData
+// }
+
+export function formatterData(data, rowkey, row) {
   let newData = []
   data.forEach((item, i) => {
     newData.push(item)
@@ -31,6 +47,7 @@ export function formatterData(data) {
       newData = newData.concat(item.children.map(child => {
         return {
           ...child,
+          isExpand: item.isExpand,
           isChild: true
         }
       }))

@@ -6,13 +6,15 @@ import './style.css'
 export default React.createClass({
   propTypes: {
     value: PropTypes.any,
-    expandIcon: PropTypes.any
+    expandIcon: PropTypes.any,
+    expandIndent: PropTypes.any
   },
 
   render() {
-    const {value, expandIcon} = this.props
+    const {value, expandIcon, expandIndent} = this.props
     return (
       <td>
+        {expandIndent}
         {expandIcon}
         {value}
       </td>

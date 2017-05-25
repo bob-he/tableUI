@@ -37,6 +37,10 @@
   background-color: #eaf8fe;
 }
 
+.table > tbody > tr.table-row-selected > td {
+  background-color: #eaf8fe;
+}
+
 .table-fixed-column {
   position: absolute;
   left: 0;
@@ -88,10 +92,7 @@
   overflow: hidden;
 }
 
-.table-row-indent {
-  padding-left: 20px;
-}
-
 .table-row-expand-icon {
   padding-right: 5px;
+  cursor: pointer;
 }

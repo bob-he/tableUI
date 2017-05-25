@@ -12,6 +12,7 @@ export default React.createClass({
     columns: React.PropTypes.array,
     width: React.PropTypes.string,
     data: React.PropTypes.array,
+    rowKey: React.PropTypes.func,
     className: React.PropTypes.string,
     fixedHeader: React.PropTypes.bool
   },
@@ -20,9 +21,9 @@ export default React.createClass({
     return {
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: true,
-      rowOffsets: [],
       columnOffsets: [],
-      rowClass: {}
+      rowOffsets: [],
+      rowStyles: {}
     }
   },
 
@@ -56,17 +57,25 @@ export default React.createClass({
     })
   },
 
-  handleRowMouseover(i) {
+  handleExpand(data, status, index) {
     this.setState({
-      rowClass: {
-        [i]: 'table-row-hover'
+      currentRow: data,
+      expandRowIndex: index,
+      children: data.children
+    })
+  },
+
+  handleRowMouseover(key) {
+    this.setState({
+      rowStyles: {
+        [key]: 'table-row-hover'
       }
     })
   },
 
   handleRowMouseout() {
     this.setState({
-      rowClass: {}
+      rowStyles: {}
     })
   },
 
@@ -92,23 +101,53 @@ export default React.createClass({
     }
   },
 
+  getRows(isFixedCloumn, data, indentIndex) {
+    const {columns, rowKey} = this.props
+    const {rowStyles, rowOffsets} = this.state
+    let rows = []
+    for (let i = 0; i < data.length; i++) {
+      const key = rowKey(data[i])
+      const children = data[i].children
+      const rowClass = classNames(
+        rowStyles[key],
+        // {'table-row-selected': i === expandRowIndex}
+      )
+      const expandInner = '＋'
+      const expandIcon = (
+        <span className="table-row-expand-icon" 
+          onClick={this.handleExpand.bind(this, data[i], i)}>
+          {expandInner}
+        </span>
+      )
+      const expandIndentStyle = {paddingLeft: 20 * indentIndex}
+      const expandIndent = <span style={expandIndentStyle}></span>
+      const rowHeight = rowOffsets[key] && rowOffsets[key].height
+      rows.push(
+        <TableRow
+          key={key}
+          row={data[i]}
+          columns={columns}
+          height={rowHeight}
+          className={rowClass}
+          isFixedCloumn={isFixedCloumn}
+          expandIcon={children && expandIcon}
+          expandIndent={expandIndent}
+          onMouseout={this.handleRowMouseout}
+          onMouseover={this.handleRowMouseover.bind(this, key)} />
+      )
+      if (children) {
+        indentIndex += 1
+        rows = rows.concat(this.getRows(isFixedCloumn, children, indentIndex))
+        indentIndex -= 1
+      }
+    }
+    return rows
+  },
+
   // 表格boody
   renderBody(isFixedCloumn) {
-    const {rowClass, rowOffsets} = this.state
-    const {data, columns} = this.props
-    const newData = formatterData(data)
-    const rows = newData.map((row, i) => {
-      return (
-        <TableRow key={i}
-          data={row}
-          columns={columns}
-          className={rowClass[i]}
-          isFixedCloumn={isFixedCloumn}
-          onMouseout={this.handleRowMouseout}
-          onMouseover={this.handleRowMouseover.bind(this, i)}
-          height={rowOffsets[i] && rowOffsets[i].height} />
-      )
-    })
+    const {data} = this.props
+    const rows = this.getRows(isFixedCloumn, data, 0)
     return (
       <tbody ref={isFixedCloumn ? '' : 'tableTbody'}>{rows}</tbody>
     )

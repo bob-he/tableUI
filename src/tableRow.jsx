@@ -7,12 +7,22 @@ import './style.css'
 export default React.createClass({
   propTypes: {
     isFixedCloumn: PropTypes.bool,
+    expandStatus: PropTypes.bool,
     className: PropTypes.string,
     onMouseover: PropTypes.func,
     onMouseout: PropTypes.func,
+    expandIndent: PropTypes.any,
+    expandIcon: PropTypes.any,
     columns: PropTypes.array,
     height: PropTypes.number,
-    data: PropTypes.object
+    row: PropTypes.object
+  },
+
+  handleExpand(data, index) {
+    const {expandStatus} = this.props
+    if (this.props.onExpand) {
+      this.props.onExpand(data, expandStatus, index)
+    }
   },
 
   handleRowMouseover() {
@@ -28,26 +38,27 @@ export default React.createClass({
   },
 
   renderTableTell() {
-    const {isFixedCloumn, columns, data} = this.props
+    const {isFixedCloumn, columns, row, expandIcon, expandIndent} = this.props
     return columns.map((col, i) => {
-      let value = data[col.key]
+      let value = row[col.key]
       if (col.render) {
-        value = col.render(data[col.key], data, i)
+        value = col.render(row[col.key], row)
       }
-      const expandIcon = <span className="table-row-expand-icon">＋</span>
-      const expandIndent = <span className="table-row-indent"></span>
       return (!isFixedCloumn || col.fixed) && (
-        <TableCell key={i} value={value}
-          expandIcon={i === 0 && (data.isChild ? expandIndent : expandIcon)} />
+        <TableCell
+          key={col.key}
+          value={value}
+          expandIndent={i === 0 && expandIndent}
+          expandIcon={i === 0 && expandIcon} />
       )
     })
   },
 
   render() {
-    const {height, className, data} = this.props
+    const {height, className, row} = this.props
     return (
       <tr className={className}
-        style={{height: height, display: data.isChild ? 'none' : ''}}
+        style={{height: height, display: row.isHide ? 'none' : ''}}
         onMouseOut={this.handleRowMouseout}
         onMouseOver={this.handleRowMouseover}
       >
