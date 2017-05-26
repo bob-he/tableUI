@@ -23,7 +23,9 @@ export default React.createClass({
       tableScrollShadow: true,
       columnOffsets: [],
       rowOffsets: [],
-      rowStyles: {}
+      rowStyles: {},
+      expandRows: {},
+      fixedRowKey: ''
     }
   },
 
@@ -57,11 +59,19 @@ export default React.createClass({
     })
   },
 
-  handleExpand(data, status, index) {
+  handleExpand(key) {
+    const {expandRows} = this.state
     this.setState({
-      currentRow: data,
-      expandRowIndex: index,
-      children: data.children
+      expandRows: {
+        ...expandRows,
+        [key]: !expandRows[key]
+      }
+    }, () => {
+      const {fixedHeader, columns} = this.props
+      const index = _.findIndex(columns, 'fixed')
+      if (index > -1 || fixedHeader) {
+        this.setTableOffset()
+      }
     })
   },
 
@@ -80,9 +90,22 @@ export default React.createClass({
   },
 
   handleScroll() {
+    let {expandRows, fixedRowKey} = this.state
     const tableOffset = this.refs.table.getBoundingClientRect()
+    const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
+    const tableHeaderOffset = tableHeader.getBoundingClientRect()
+    for(let key in expandRows) {
+      if (expandRows[key]) {
+        const node = ReactDOM.findDOMNode(this.refs[`tr_${key}`])
+        const nodeOffset = node.getBoundingClientRect()
+        if (nodeOffset.top === tableHeaderOffset.height) {
+          fixedRowKey = key
+        }
+      }
+    }
     const position = tableOffset.top > 0 ? 'absolute' : 'fixed'
     this.setState({
+      fixedRowKey: fixedRowKey,
       tableWidth: tableOffset.width,
       fixedHeaderPosition: position
     })
@@ -103,28 +126,30 @@ export default React.createClass({
 
   getRows(isFixedCloumn, data, indentIndex) {
     const {columns, rowKey} = this.props
-    const {rowStyles, rowOffsets} = this.state
+    const {rowStyles, rowOffsets, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
       const key = rowKey(data[i])
+      const rowRef = expandRows[key] ? `tr_${key}` : ''
       const children = data[i].children
       const rowClass = classNames(
         rowStyles[key],
-        // {'table-row-selected': i === expandRowIndex}
+        {'table-row-selected': expandRows[key]}
       )
-      const expandInner = '＋'
+      const expandInner = expandRows[key] ? '－' : '＋'
       const expandIcon = (
         <span className="table-row-expand-icon" 
-          onClick={this.handleExpand.bind(this, data[i], i)}>
+          onClick={this.handleExpand.bind(this, key)}>
           {expandInner}
         </span>
       )
-      const expandIndentStyle = {paddingLeft: 20 * indentIndex}
+      const expandIndentStyle = {paddingLeft: 25 * indentIndex}
       const expandIndent = <span style={expandIndentStyle}></span>
       const rowHeight = rowOffsets[key] && rowOffsets[key].height
       rows.push(
         <TableRow
           key={key}
+          ref={rowRef}
           row={data[i]}
           columns={columns}
           height={rowHeight}
@@ -135,7 +160,7 @@ export default React.createClass({
           onMouseout={this.handleRowMouseout}
           onMouseover={this.handleRowMouseover.bind(this, key)} />
       )
-      if (children) {
+      if (children && expandRows[key]) {
         indentIndex += 1
         rows = rows.concat(this.getRows(isFixedCloumn, children, indentIndex))
         indentIndex -= 1
@@ -146,7 +171,14 @@ export default React.createClass({
 
   // 表格boody
   renderBody(isFixedCloumn) {
-    const {data} = this.props
+    let {data, rowKey} = this.props
+    const {fixedRowKey} = this.state
+    const fixedRow = _.filter(data, (row) => {
+      return rowKey(row) === fixedRowKey
+    })
+    if (fixedRowKey && fixedRow.length > 0) {
+      data = fixedRow
+    }
     const rows = this.getRows(isFixedCloumn, data, 0)
     return (
       <tbody ref={isFixedCloumn ? '' : 'tableTbody'}>{rows}</tbody>

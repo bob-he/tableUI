@@ -58,7 +58,7 @@ export default React.createClass({
     const {height, className, row} = this.props
     return (
       <tr className={className}
-        style={{height: height, display: row.isHide ? 'none' : ''}}
+        style={{height: height}}
         onMouseOut={this.handleRowMouseout}
         onMouseOver={this.handleRowMouseover}
       >

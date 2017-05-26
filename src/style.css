@@ -93,6 +93,10 @@
 }
 
 .table-row-expand-icon {
-  padding-right: 5px;
+  margin-right: 5px;
+  padding: 0 3px;
+  background: #FFFFFF;
+  border: 1px solid #CCCCCC;
+  overflow: hidden;
   cursor: pointer;
 }
