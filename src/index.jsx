@@ -95,15 +95,20 @@ export default React.createClass({
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     const tableHeaderOffset = tableHeader.getBoundingClientRect()
     const keys = _.keys(expandRows)
-    // for (let i = 0; i < keys.lenght; i++) {
-
-    // }
     fixedRowKey = ''
     for(let key in expandRows) {
       if (expandRows[key]) {
         const node = ReactDOM.findDOMNode(this.refs[`tr_${key}`])
         const nodeOffset = node.getBoundingClientRect()
-        if (nodeOffset.top < tableHeaderOffset.height && (nodeOffset.top > -400)) {
+        const refKeys = _.keys(this.refs).filter(item => {
+          return item.indexOf(`tr_${key}_`) > -1
+        })
+        const childsHeight = _.sumBy(refKeys, item => {
+          const childNode = ReactDOM.findDOMNode(this.refs[item])
+          const childNodeOffset = childNode.getBoundingClientRect()
+          return childNodeOffset.height
+        })
+        if (nodeOffset.top < tableHeaderOffset.height && (nodeOffset.top + nodeOffset.height > -childsHeight)) {
           fixedRowKey = key
           continue
         }
@@ -130,13 +135,16 @@ export default React.createClass({
     }
   },
 
-  getRows(isFixedHeader, isFixedCloumn, data, indentIndex) {
+  getRows(isFixedHeader, isFixedCloumn, data, indentIndex, parentKey) {
     const {columns, rowKey} = this.props
     const {rowStyles, rowOffsets, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
       const key = rowKey(data[i])
-      const rowRef = (!isFixedHeader && expandRows[key]) ? `tr_${key}` : ''
+      let rowRef = (!isFixedHeader && expandRows[key]) ? `tr_${key}` : ''
+      if (parentKey) {
+        rowRef = (!isFixedHeader && expandRows[parentKey]) ? `tr_${parentKey}_${key}` : ''
+      }
       const children = data[i].children
       const rowClass = classNames(
         rowStyles[key],
@@ -168,7 +176,7 @@ export default React.createClass({
       )
       if (!isFixedHeader && children && expandRows[key]) {
         indentIndex += 1
-        rows = rows.concat(this.getRows(isFixedHeader, isFixedCloumn, children, indentIndex))
+        rows = rows.concat(this.getRows(isFixedHeader, isFixedCloumn, children, indentIndex, key))
         indentIndex -= 1
       }
     }

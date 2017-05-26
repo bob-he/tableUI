@@ -5,7 +5,7 @@ import Table from '../src/index.jsx'
 const Page = React.createClass({
   render: function() {
     return (
-      <div style={{width: 900, padding: '200px 10px'}}>
+      <div style={{width: 600, padding: '200px 10px'}}>
         <Table
           fixedHeader
           rowKey={record => record.x}
