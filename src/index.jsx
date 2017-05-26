@@ -94,12 +94,18 @@ export default React.createClass({
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     const tableHeaderOffset = tableHeader.getBoundingClientRect()
+    const keys = _.keys(expandRows)
+    // for (let i = 0; i < keys.lenght; i++) {
+
+    // }
+    fixedRowKey = ''
     for(let key in expandRows) {
       if (expandRows[key]) {
         const node = ReactDOM.findDOMNode(this.refs[`tr_${key}`])
         const nodeOffset = node.getBoundingClientRect()
-        if (nodeOffset.top === tableHeaderOffset.height) {
+        if (nodeOffset.top < tableHeaderOffset.height && (nodeOffset.top > -400)) {
           fixedRowKey = key
+          continue
         }
       }
     }
@@ -124,13 +130,13 @@ export default React.createClass({
     }
   },
 
-  getRows(isFixedCloumn, data, indentIndex) {
+  getRows(isFixedHeader, isFixedCloumn, data, indentIndex) {
     const {columns, rowKey} = this.props
     const {rowStyles, rowOffsets, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
       const key = rowKey(data[i])
-      const rowRef = expandRows[key] ? `tr_${key}` : ''
+      const rowRef = (!isFixedHeader && expandRows[key]) ? `tr_${key}` : ''
       const children = data[i].children
       const rowClass = classNames(
         rowStyles[key],
@@ -160,9 +166,9 @@ export default React.createClass({
           onMouseout={this.handleRowMouseout}
           onMouseover={this.handleRowMouseover.bind(this, key)} />
       )
-      if (children && expandRows[key]) {
+      if (!isFixedHeader && children && expandRows[key]) {
         indentIndex += 1
-        rows = rows.concat(this.getRows(isFixedCloumn, children, indentIndex))
+        rows = rows.concat(this.getRows(isFixedHeader, isFixedCloumn, children, indentIndex))
         indentIndex -= 1
       }
     }
@@ -170,16 +176,20 @@ export default React.createClass({
   },
 
   // 表格boody
-  renderBody(isFixedCloumn) {
+  renderBody(isFixedHeader, isFixedCloumn) {
     let {data, rowKey} = this.props
     const {fixedRowKey} = this.state
     const fixedRow = _.filter(data, (row) => {
       return rowKey(row) === fixedRowKey
     })
-    if (fixedRowKey && fixedRow.length > 0) {
-      data = fixedRow
+    if (isFixedHeader) {
+      if (fixedRowKey && fixedRow.length > 0) {
+        data = fixedRow
+      } else {
+        data = []
+      }
     }
-    const rows = this.getRows(isFixedCloumn, data, 0)
+    const rows = this.getRows(isFixedHeader, isFixedCloumn, data, 0)
     return (
       <tbody ref={isFixedCloumn ? '' : 'tableTbody'}>{rows}</tbody>
     )
@@ -216,7 +226,7 @@ export default React.createClass({
             columns={columns}
             offsets={columnOffsets}
             isFixedHeader={isFixedHeader} />
-          {!isFixedHeader && this.renderBody(true)}
+          {this.renderBody(isFixedHeader, true)}
         </table>
       </div>
     )
@@ -235,7 +245,7 @@ export default React.createClass({
               ref={isFixedHeader ? '' : 'tableHeader'}
               isFixedHeader={isFixedHeader}
               offsets={columnOffsets} />
-            {!isFixedHeader && this.renderBody()}
+            {this.renderBody(isFixedHeader)}
           </table>
         </div>
       </div>
