@@ -1,23 +1,25 @@
 import React from 'react'
+import createClass from 'create-react-class'
 import ReactDOM from 'react-dom'
 import Table from '../src/index.jsx'
+import 'iconui/lib/style.css'
 
-const Page = React.createClass({
+const Page = createClass({
   render: function() {
     return (
-      <div style={{width: 600, padding: '200px 10px'}}>
+      <div style={{width: 900, margin: '200px 100px'}}>
         <Table
           fixedHeader
           rowKey={record => record.x}
           className="table-bordered"
           width="100%"
           columns={[
-            {key: 'x', title: '时间', fixed: 'left', render: (val) => {return <div style={{'whiteSpace': 'nowrap', display: 'inline-block'}}>{val}</div>}},
-            {key: 'y0', title: '机锋机锋机锋'},
-            {key: 'y1', title: 'UC', render: (val) => {return <div>{(val * 100) + '%'}</div>}},
-            {key: 'y2', title: '华为商店华为商店'},
-            {key: 'y3', title: '联想游戏中心'},
-            {key: 'y4', title: '陌陌游戏'},
+            {key: 'x', title: '时间', render: (val) => {return <div style={{'whiteSpace': 'nowrap', display: 'inline-block'}}>{val}</div>}},
+            {key: 'y0', title: '机锋机锋机锋', sort: true},
+            {key: 'y1', title: 'UC', sort: true, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
+            {key: 'y2', title: '华为商店华为商店', sort: true},
+            {key: 'y3', title: '联想游戏中心', sort: true},
+            {key: 'y4', title: '陌陌游戏', sort: true},
             {key: 'y5', title: '游戏汇游戏汇游戏汇'},
             {key: 'y6', title: 'OPPO游戏中心'},
             {key: 'y7', title: '百度'},
@@ -95,6 +97,48 @@ const Page = React.createClass({
                       'y9': 0.0453,
                       'y10': 0.0584,
                       'x': '2019-05-04'
+                    },
+                    {
+                      'y0': 0.0417,
+                      'y1': 0.0345,
+                      'y2': 0.0909,
+                      'y3': 0.1875,
+                      'y4': 1.3333,
+                      'y5': 0.25,
+                      'y6': 0.0455,
+                      'y7': 0.0476,
+                      'y8': 0.0769,
+                      'y9': 0.0453,
+                      'y10': 0.0584,
+                      'x': '2319-05-04'
+                    },
+                    {
+                      'y0': 0.0417,
+                      'y1': 0.0345,
+                      'y2': 0.0909,
+                      'y3': 0.1875,
+                      'y4': 1.3333,
+                      'y5': 0.25,
+                      'y6': 0.0455,
+                      'y7': 0.0476,
+                      'y8': 0.0769,
+                      'y9': 0.0453,
+                      'y10': 0.0584,
+                      'x': '2219-05-04'
+                    },
+                    {
+                      'y0': 0.0417,
+                      'y1': 0.0345,
+                      'y2': 0.0909,
+                      'y3': 0.1875,
+                      'y4': 1.3333,
+                      'y5': 0.25,
+                      'y6': 0.0455,
+                      'y7': 0.0476,
+                      'y8': 0.0769,
+                      'y9': 0.0453,
+                      'y10': 0.0584,
+                      'x': '2119-05-04'
                     }
                   ]
                 },

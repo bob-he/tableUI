@@ -1,9 +1,11 @@
-import React, {PropTypes} from 'react'
+import React from 'react'
+import PropTypes from 'prop-types'
+import createClass from 'create-react-class'
 import classNames from 'classnames'
 import _ from 'lodash'
 import './style.css'
 
-export default React.createClass({
+export default createClass({
   propTypes: {
     value: PropTypes.any,
     expandIcon: PropTypes.any,
