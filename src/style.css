@@ -82,7 +82,7 @@
   overflow: hidden;
 }
 
-.table-fixed-header > .table-fixed-header-inner {
+.table-fixed-header > .table-header-inner {
   overflow: hidden;
   box-shadow: 0 0 5px #DDDDDD;
 }

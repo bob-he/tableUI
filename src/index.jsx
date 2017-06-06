@@ -323,7 +323,7 @@ export default createClass({
         style={headerStyle}
         className={`table-${fixedHeaderPosition}-header`}
       >
-        <div className="table-fixed-header-inner">
+        <div className="table-header-inner">
           {this.renderTable(true)}
         </div>
       </div>
