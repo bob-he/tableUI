@@ -99,4 +99,10 @@
 
 .table-sort {
   display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.table-title-block {
+  white-space: nowrap
 }

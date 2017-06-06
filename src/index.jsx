@@ -22,6 +22,7 @@ export default createClass({
 
   getInitialState() {
     return {
+      data: this.props.data,
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: true,
       columnOffsets: [],
@@ -71,6 +72,24 @@ export default createClass({
       rowOffsets: setNodeOffset(tableTbody.querySelectorAll('tr')),
       columnOffsets: setNodeOffset(tableHeader.querySelectorAll('th')),
       tableWidth: tableOffset.width
+    })
+  },
+
+  handleSort(key, sort) {
+    const {data} = this.props
+    const newData = data
+    newData.sort((a, b) => {
+      let reult = 0
+      if (sort === 'desc') {
+        reult = b[key] - a[key]
+      }
+      if (sort === 'asc') {
+        reult = a[key] - b[key]
+      }
+      return reult
+    })
+    this.setState({
+      data: newData
     })
   },
 
@@ -212,8 +231,8 @@ export default createClass({
 
   // 表格boody
   renderBody(isFixedHeader, isFixedCloumn) {
-    let {data, rowKey} = this.props
-    const {fixedRowKey} = this.state
+    let {rowKey} = this.props
+    let {data, fixedRowKey} = this.state
     const fixedRow = _.filter(data, (row) => {
       return fixedRowKey[rowKey(row)]
     })
@@ -271,7 +290,7 @@ export default createClass({
     const headerRef = isFixedHeader ? `headerScroll` : `scroll`
     const tableScrollStyle = classNames(
       {'table-scroll': index > -1 || isfixed},
-      {'table-scroll-shadow': index > -1 && tableScrollShadow}
+      {'table-scroll-shadow': index > -1 || tableScrollShadow}
     )
     return (
       <div style={{position: 'relative'}}>
@@ -282,6 +301,7 @@ export default createClass({
             <TableHeader
               columns={columns}
               ref={isFixedHeader ? '' : 'tableHeader'}
+              onSort={this.handleSort}
               isFixedHeader={isFixedHeader}
               offsets={columnOffsets} />
             {this.renderBody(isFixedHeader)}

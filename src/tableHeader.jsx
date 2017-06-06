@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import createClass from 'create-react-class'
 import ReactDOM from 'react-dom'
+import Icon from 'iconui'
 import classNames from 'classnames'
 import {setHeaderOffset} from './utils.js'
 import _ from 'lodash'
@@ -12,6 +13,7 @@ export default createClass({
     isfixed: PropTypes.bool,
     columns: PropTypes.array,
     offsets: PropTypes.array,
+    onSort: PropTypes.func,
     isFixedCloumn: PropTypes.bool
   },
 
@@ -23,9 +25,14 @@ export default createClass({
 
   handleSort(key) {
     const {sorted} = this.state
+    const sort = sorted[key] === 'asc' ? 'desc' : 'asc'
     this.setState({
       sorted: {
-        [key]: sorted[key] === 'asc' ? 'desc' : 'asc'
+        [key]: sort
+      }
+    }, () => {
+      if (this.props.onSort) {
+        this.props.onSort(key, sort)
       }
     })
   },
@@ -35,12 +42,12 @@ export default createClass({
     let {isfixed, columns, isFixedCloumn, offsets} = this.props
     columns = isfixed ? columns.slice(0, 1) : columns
     const thColumns = columns.map((col, i) => {
-      let sortIcon = '◆'
+      let sortIcon = <Icon type="sort" />
       if (sorted[col.key] === 'asc') {
-        sortIcon = '↑'
+        sortIcon = <Icon type="sortasc" />
       }
       if (sorted[col.key] === 'desc') {
-        sortIcon = '↓'
+        sortIcon = <Icon type="sortdesc" />
       }
       const sort = (
         <span className="table-sort" onClick={this.handleSort.bind(this, col.key)}>
@@ -51,7 +58,7 @@ export default createClass({
         <th key={col.key}
           style={{height: offsets[i] && offsets[i].height}}
         >
-          <div style={{width: offsets[i] && offsets[i].width}}>
+          <div className={col.className} style={{width: offsets[i] && offsets[i].width}}>
             {col.title}
             {col.sort && sort}
           </div>
