@@ -16,7 +16,8 @@
     "prop-types": "latest",
     "create-react-class": "latest",
     "classnames": "latest",
-    "iconui": "latest"
+    "iconui": "latest",
+    "dragui": "latest"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",

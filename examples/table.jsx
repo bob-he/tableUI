@@ -9,19 +9,18 @@ const Page = createClass({
     return (
       <div style={{width: 900, margin: '200px 100px'}}>
         <Table
-          fixedHeader
           rowKey={record => record.x}
           className="table-bordered"
           width="100%"
           columns={[
-            {key: 'x', title: '时间', fixed: 'left', render: (val) => {return <div style={{'whiteSpace': 'nowrap', display: 'inline-block'}}>{val}</div>}},
-            {key: 'y0', title: '机锋机锋机锋', className: "table-title-block", sort: true},
+            {key: 'x', title: '时间', width: 150},
+            {key: 'y0', title: '机锋机锋机锋', width: 100, className: "table-title-block", sort: true},
             {key: 'y1', title: 'UC', sort: true, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
-            {key: 'y2', title: '华为商店华为商店', sort: true, className: "table-title-block"},
-            {key: 'y3', title: '联想游戏中心', sort: true, className: "table-title-block"},
+            {key: 'y2', title: '华为商店华为商店', width: 150, sort: true, className: "table-title-block"},
+            {key: 'y3', title: '联想游戏中心', width: 100, sort: true, className: "table-title-block"},
             {key: 'y4', title: '陌陌游戏', sort: true, className: "table-title-block"},
-            {key: 'y5', title: '游戏汇游戏汇游戏汇', className: "table-title-block"},
-            {key: 'y6', title: 'OPPO游戏中心', className: "table-title-block"},
+            {key: 'y5', title: '游戏汇游戏汇游戏汇', width: 150, className: "table-title-block"},
+            {key: 'y6', title: 'OPPO游戏中心', width: 100, className: "table-title-block"},
             {key: 'y7', title: '百度'},
             {key: 'y8', title: '网易应用', className: "table-title-block"},
             {key: 'y9', title: 'APP'},

@@ -13,12 +13,22 @@
 }
 
 .table > thead > tr > th {
+  position: relative;
   height: 36px;
   padding: 5px 8px;
   text-align: left;
   background-color: #eef2f9;
   border-bottom: 1px solid #e1e5f3;
   vertical-align: middle;
+}
+
+.table-drag-flag {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: #FF0000;
 }
 
 .table-wrapper {
@@ -78,7 +88,7 @@
   padding-bottom: 8px;
   position: fixed;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   overflow: hidden;
 }
 
@@ -93,7 +103,6 @@
 }
 
 .table-row-expand-icon {
-  margin-right: 5px;
   cursor: pointer;
 }
 
@@ -103,6 +112,47 @@
   cursor: pointer;
 }
 
-.table-title-block {
-  white-space: nowrap
+.table-scrollbar {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  margin-left: -100px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 99em;
+  cursor: pointer;
+}
+
+.table-drag {
+  position: absolute;
+  left: 50%;
+  margin-left: -20px;
+  top: 200px;
+  z-index: 2;
+  line-height: 40px;
+}
+
+.table-drag .icon-caretleft {
+  margin-left: -5px;
+  font-size: 35px;
+  color: #FFFFFF;
+}
+
+.table-drag .icon-caretright {
+  margin-left: 5px;
+  font-size: 35px;
+  color: #FFFFFF;
+}
+
+.table-drag .icon + .icon {
+  margin-left: -20px;
+}
+
+.table-wrapper .table-drag {
+  display: none;
+}
+
+.table-wrapper:hover .table-drag {
+  display: block;
 }

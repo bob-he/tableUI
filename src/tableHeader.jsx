@@ -10,17 +10,81 @@ import './style.css'
 
 export default createClass({
   propTypes: {
-    isfixed: PropTypes.bool,
+    onDrag: PropTypes.func,
     columns: PropTypes.array,
     offsets: PropTypes.array,
-    onSort: PropTypes.func,
-    isFixedCloumn: PropTypes.bool
+    onSort: PropTypes.func
   },
 
   getInitialState() {
     return {
-      sorted: {}
+      thWidths: {},
+      sorted: {},
+      axisX: {}
     }
+  },
+
+  componentWillUpdate(nextProps) {
+    if (this.props.offsets !== nextProps.offsets) {
+      const {columns, offsets} = nextProps
+      const thWidths = {}
+      columns.forEach((col, i) => {
+        thWidths[col.key] = col.width || offsets[i] && offsets[i].width
+      })
+      this.setState({
+        thWidths: thWidths
+      })
+    }
+  },
+
+  handleMousedown(key, e) {
+    if (e.button === 2 || e.button === 3) {
+      return
+    }
+    const node = e.target.parentNode
+    const width = node.querySelector('.table-title').offsetWidth
+    this.setState({
+      cursor: 'crosshair',
+      currentKey: key,
+      pageX: e.pageX,
+      axisX: {
+        ...this.state.axisX,
+        [key]: 0
+      },
+      downWidths: {
+        ...this.state.thWidths,
+        [key]: width
+      }
+    }, () => {
+      if (!this.moveHandler) {
+        this.moveHandler = true
+        window.addEventListener('mousemove', this.handleOnMousemove)
+      }
+    })
+  },
+
+  handleMouseup() {
+    this.setState({
+      'cursor': 'default'
+    }, () => {
+      window.removeEventListener('mousemove', this.handleOnMousemove)
+      this.moveHandler = false
+    })
+  },
+
+  handleOnMousemove(e) {
+    const {thWidths, downWidths, pageX, currentKey} = this.state
+    const axisX = e.pageX - pageX
+    this.setState({
+      thWidths: {
+        ...thWidths,
+        [currentKey]: downWidths[currentKey] + axisX
+      }
+    }, () => {
+      if (typeof this.props.onDrag === 'function') {
+        this.props.onDrag()
+      }
+    })
   },
 
   handleSort(key) {
@@ -31,14 +95,14 @@ export default createClass({
         [key]: sort
       }
     }, () => {
-      if (this.props.onSort) {
+      if (typeof this.props.onSort === 'function') {
         this.props.onSort(key, sort)
       }
     })
   },
 
   render() {
-    const {sorted} = this.state
+    const {cursor, axisX, sorted, thWidths} = this.state
     let {isfixed, columns, isFixedCloumn, offsets} = this.props
     columns = isfixed ? columns.slice(0, 1) : columns
     const thColumns = columns.map((col, i) => {
@@ -54,16 +118,20 @@ export default createClass({
         {sortIcon}
         </span>
       )
-      return (!isFixedCloumn || col.fixed || isfixed) ? (
+      const thClass = classNames('table-title', col.className)
+      const offset = _.find(offsets, {key: col.key})
+      const width = thWidths[col.key] || (col.width || offset && offset.width)
+      return (
         <th key={col.key}
-          style={{height: offsets[i] && offsets[i].height}}
+          style={{height: offset && offset.height}}
         >
-          <div className={col.className} style={{width: offsets[i] && offsets[i].width}}>
+          <div id={col.key} className={thClass} style={{width: width}}>
             {col.title}
             {col.sort && sort}
           </div>
+          <span style={{cursor: cursor}} onMouseUp={this.handleMouseup} onMouseDown={this.handleMousedown.bind(this, col.key)} className="table-drag-flag"></span>
         </th>
-      ) : null
+      )
     })
     return (
       <thead>
