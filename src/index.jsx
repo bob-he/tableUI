@@ -7,7 +7,7 @@ import Drag from 'dragui'
 import classNames from 'classnames'
 import TableHeader from './tableHeader.jsx'
 import TableRow from './tableRow.jsx'
-import {setNodeOffset} from './utils.js'
+import {getNodeWidth, getNodeHeight} from './utils.js'
 import _ from 'lodash'
 import './style.css'
 
@@ -26,8 +26,9 @@ export default createClass({
       data: this.props.data,
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: true,
-      columnOffsets: [],
-      rowOffsets: [],
+      columnsHeights: [],
+      columnWidths: [],
+      rowHeights: [],
       rowStyles: {},
       expandRows: {},
       fixedRowKey: ''
@@ -54,17 +55,15 @@ export default createClass({
     const {fixedHeader, columns} = this.props
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
-    const nodes = setNodeOffset(tableHeader.querySelectorAll('th'))
+    const nodes = getNodeWidth(tableHeader.querySelectorAll('th'))
     let thWidths = 0
     for (let i = 0; i < nodes.length; i ++) {
-      thWidths = thWidths + (columns[i].width || nodes[i].offsetWidth)
+      thWidths = thWidths + (columns[i].width || nodes[i].width)
     }
     this.setState({
-      isfixed: thWidths > tableOffset.width
+      isFixed: thWidths > tableOffset.width
     }, () => {
-      if (fixedHeader || thWidths > tableOffset.width) {
-        this.setTableOffset()
-      }
+      this.setTableOffset()
     })
   },
 
@@ -73,9 +72,15 @@ export default createClass({
     const tableTbody = ReactDOM.findDOMNode(this.refs.tableTbody)
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     this.setState({
-      rowOffsets: setNodeOffset(tableTbody.querySelectorAll('tr')),
-      columnOffsets: setNodeOffset(tableHeader.querySelectorAll('th'), 'div'),
+      tableLayout: true,
+      rowHeights: getNodeHeight(tableTbody.querySelectorAll('tr')),
+      columnWidths: getNodeWidth(tableHeader.querySelectorAll('th')),
       tableWidth: tableOffset.width
+    }, () => {
+      this.refs.scroll.scrollLeft = this.scrollLeft
+      this.setState({
+        columnsHeights: getNodeHeight(tableHeader.querySelectorAll('th'))
+      })
     })
   },
 
@@ -86,6 +91,10 @@ export default createClass({
   },
 
   handleHeaderDrag() {
+    const {isFixed} = this.state
+    if (!isFixed) {
+      this.setFixedColumn()
+    }
   },
 
   handleSort(key, sort) {
@@ -109,17 +118,13 @@ export default createClass({
   handleExpand(key) {
     const {expandRows} = this.state
     this.setState({
+      tableLayout: false,
       expandRows: {
         ...expandRows,
         [key]: !expandRows[key]
       }
     }, () => {
-      const {fixedHeader, columns} = this.props
-      const index = _.findIndex(columns, 'fixed')
       this.setFixedColumn()
-      if (index > -1 || fixedHeader) {
-        this.setTableOffset()
-      }
     })
   },
 
@@ -175,19 +180,21 @@ export default createClass({
   handleHorizontalScroll() {
     const {tableWidth} = this.state
     const {fixedHeader} = this.props
-    const {scrollLeft, scrollWidth} = this.refs.scroll
-    this.setState({
-      'tableFixedColumnShadow': scrollLeft > 0,
-      'tableScrollShadow': (tableWidth + scrollLeft) !== scrollWidth
-    })
+    let {scrollLeft, scrollWidth} = this.refs.scroll
     if (fixedHeader) {
       this.refs.headerScroll.scrollLeft = scrollLeft
     }
+    this.setState({
+      'tableFixedColumnShadow': scrollLeft > 0,
+      'tableScrollShadow': (tableWidth + scrollLeft) !== scrollWidth
+    }, () => {
+      this.scrollLeft = scrollLeft
+    })
   },
 
   getRows(isFixedHeader, isFixedCloumn, data, indentIndex, parentKey) {
     const {columns, rowKey} = this.props
-    const {isfixed, rowStyles, rowOffsets, expandRows} = this.state
+    const {isFixed, rowStyles, rowHeights, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
       let key = rowKey(data[i])
@@ -214,13 +221,13 @@ export default createClass({
       )
       const expandIndentStyle = {paddingLeft: 25 * indentIndex}
       const expandIndent = <span style={expandIndentStyle}></span>
-      const rowHeight = rowOffsets[key] && rowOffsets[key].height
+      const rowHeight = rowHeights[key] && rowHeights[key].height
       rows.push(
         <TableRow
           key={key}
           ref={rowRef}
           row={data[i]}
-          isfixed={isfixed}
+          isFixed={isFixed}
           columns={columns}
           height={rowHeight}
           className={rowClass}
@@ -263,13 +270,22 @@ export default createClass({
   },
 
   renderColGroup(isFixedCloumn) {
-    let {columns} = this.props
-    const {isfixed, columnOffsets} = this.state
-    columns = (isFixedCloumn && isfixed) ? columns.slice(0, 1) : columns
-    const colgroup = columns.map((col, i) => {
-      const offset = _.find(columnOffsets, {key: col.key})
-      return (!isFixedCloumn || col.fixed || isfixed) ? (
-        <col style={{width: offset && offset.width}} key={col.key} />
+    const {columns} = this.props
+    const {isFixed, columnWidths} = this.state
+    let leftCloumns = columns
+    if (isFixedCloumn && isFixed) {
+      leftCloumns = columns.filter((col, i) => {return col.fixed})
+    }
+    if (leftCloumns.length === 0) {
+      leftCloumns = columns[0]
+    }
+    const colgroup = leftCloumns.map((col, i) => {
+      let width = columnWidths[i] && columnWidths[i].width
+      if (width < col.width) {
+        width = col.width
+      }
+      return (!isFixedCloumn || col.fixed || isFixed) ? (
+        <col style={{width: width, minWidth: width}} key={col.key} />
       ) : null
     })
     return <colgroup>{colgroup}</colgroup>
@@ -278,7 +294,7 @@ export default createClass({
   // 表格
   renderTable(isFixedHeader) {
     const {width, columns} = this.props
-    const {isDrag, isfixed, tableFixedColumnShadow, tableScrollShadow, columnOffsets} = this.state
+    const {tableLayout, isDrag, isFixed, tableFixedColumnShadow, tableScrollShadow, columnsHeights, columnWidths} = this.state
     const index = _.findIndex(columns, 'fixed')
     if (index > 0) {
       return console.error('请正确配置columns')
@@ -287,35 +303,38 @@ export default createClass({
       'table-fixed-column',
       {'table-fixed-column-shadow': tableFixedColumnShadow}
     )
-    let leftCloumns = columns.filter((col, i) => {return col.fixed})
-    let leftOffsets = columnOffsets.filter(item => {
-      return _.findIndex(leftCloumns, {key: item.key}) > -1
+    let leftCloumns = columns.filter((col, i) => {
+      return col.fixed
     })
     if (leftCloumns.length === 0) {
       leftCloumns = [columns[0]]
-      leftOffsets = [columnOffsets[0]]
     }
+    let fixedColumnWidths = 0
+    for (let i = 0; i < leftCloumns.length; i++) {
+      fixedColumnWidths += columnWidths[i]
+    }
+    const tableStyle = tableLayout ? {tableLayout: 'fixed'} : {}
     const fixedColumn = (
       <div className={fixedColumnStyle}>
-        <table className="table" width={width}>
+        <table className="table" width={fixedColumnWidths} style={tableStyle}>
           {this.renderColGroup(true)}
           <TableHeader
-            columns={leftCloumns}
-            offsets={leftOffsets} />
+            heights={columnsHeights}
+            columns={leftCloumns} />
           {this.renderBody(isFixedHeader, true)}
         </table>
       </div>
     )
     const headerRef = isFixedHeader ? `headerScroll` : `scroll`
     const tableScrollStyle = classNames(
-      {'table-scroll': isfixed},
+      {'table-scroll': isFixed},
       {'table-scroll-shadow': tableScrollShadow}
     )
     return (
       <div style={{position: 'relative'}}>
-        {isfixed && fixedColumn}
+        {isFixed && fixedColumn}
         {
-          !isFixedHeader && isfixed && (
+          !isFixedHeader && isFixed && (
             <Drag
               axis='x'
               className="table-drag"
@@ -334,14 +353,14 @@ export default createClass({
           )
         }
         <div ref={headerRef} className={tableScrollStyle}>
-          <table className="table" width={width}>
+          <table className="table" width={width} style={tableStyle}>
             {this.renderColGroup()}
             <TableHeader
               onDrag={this.handleHeaderDrag}
               columns={columns}
+              heights={columnsHeights}
               ref={isFixedHeader ? '' : 'tableHeader'}
-              onSort={this.handleSort}
-              offsets={columnOffsets} />
+              onSort={this.handleSort} />
             {this.renderBody(isFixedHeader)}
           </table>
         </div>

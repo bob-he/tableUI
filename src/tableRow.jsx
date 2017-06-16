@@ -17,7 +17,7 @@ export default createClass({
     expandIndent: PropTypes.any,
     expandIcon: PropTypes.any,
     columns: PropTypes.array,
-    isfixed: PropTypes.bool,
+    isFixed: PropTypes.bool,
     height: PropTypes.number,
     row: PropTypes.object
   },
@@ -42,14 +42,20 @@ export default createClass({
   },
 
   renderTableTell() {
-    let {isfixed, isFixedCloumn, columns, row, expandIcon, expandIndent} = this.props
-    columns = (isFixedCloumn && isfixed) ? columns.slice(0, 1) : columns
-    return columns.map((col, i) => {
+    let {isFixed, isFixedCloumn, columns, row, expandIcon, expandIndent} = this.props
+    let leftCloumns = columns
+    if (isFixedCloumn && isFixed) {
+      leftCloumns = columns.filter((col, i) => {return col.fixed})
+    }
+    if (leftCloumns.length === 0) {
+      leftCloumns = columns[0]
+    }
+    return leftCloumns.map((col, i) => {
       let value = row[col.key]
       if (col.render) {
         value = col.render(row[col.key], row)
       }
-      return (!isFixedCloumn || col.fixed || isfixed) && (
+      return (!isFixedCloumn || col.fixed || isFixed) && (
         <TableCell
           key={col.key}
           value={value}

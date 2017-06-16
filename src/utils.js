@@ -12,22 +12,23 @@ function getStyleNumber(node) {
   }
 }
 
-export function setNodeOffset(nodes, tag) {
-  const offsets = _.toArray(nodes).map(node => {
-    let childNode = node
-    if (tag) {
-      childNode = node.querySelector('div')
-    }
+export function getNodeWidth(nodes) {
+  return _.toArray(nodes).map(node => {
     const offset = node.getBoundingClientRect()
-    const childOffset = childNode.getBoundingClientRect()
-    const style = getStyleNumber(childNode)
-    const innerWidth = childOffset.width - style.pl - style.pr - style.ml - style.mr
+    const style = getStyleNumber(node)
+    const innerWidth = offset.width - style.pl - style.pr - style.ml - style.mr
     return {
-      key: childNode.id,
-      height: offset.height,
-      width: innerWidth > 50 ? innerWidth : 50,
-      offsetWidth: childOffset.width
+      width: offset.width,
+      innerWidth: innerWidth
     }
   })
-  return offsets
+}
+
+export function getNodeHeight(nodes) {
+  return _.toArray(nodes).map(node => {
+    const offset = node.getBoundingClientRect()
+    return {
+      height: offset.height
+    }
+  })
 }

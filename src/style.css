@@ -18,7 +18,7 @@
   padding: 5px 8px;
   text-align: left;
   background-color: #eef2f9;
-  border-bottom: 1px solid #e1e5f3;
+  border: 1px solid #e1e5f3;
   vertical-align: middle;
 }
 
@@ -28,7 +28,6 @@
   top: 0;
   bottom: 0;
   width: 8px;
-  background: #FF0000;
 }
 
 .table-wrapper {
@@ -39,7 +38,7 @@
   padding: 5px 8px;
   height: 36px;
   background-color: #FFFFFF;
-  border-bottom: 1px solid #e1e5f3;
+  border: 1px solid #e1e5f3;
 }
 
 .table > tbody > tr:hover > td,
