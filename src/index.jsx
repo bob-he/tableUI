@@ -68,13 +68,24 @@ export default createClass({
   },
 
   setTableOffset() {
+    const {columns} = this.props
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableTbody = ReactDOM.findDOMNode(this.refs.tableTbody)
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
+    const columnWidths = getNodeWidth(tableHeader.querySelectorAll('th')).map((item, i) => {
+      let width = item.width
+      if (columns[i].width && columns[i].width > item.width) {
+        width = columns[i].width
+      }
+      return {
+        width: width
+      }
+    })
     this.setState({
       tableLayout: true,
       rowHeights: getNodeHeight(tableTbody.querySelectorAll('tr')),
-      columnWidths: getNodeWidth(tableHeader.querySelectorAll('th')),
+      columnWidths: columnWidths,
+      columnWidthsSource: columnWidths,
       tableWidth: tableOffset.width
     }, () => {
       this.refs.scroll.scrollLeft = this.scrollLeft
@@ -90,11 +101,63 @@ export default createClass({
     }, 500)
   },
 
-  handleHeaderDrag() {
-    const {isFixed} = this.state
-    if (!isFixed) {
-      this.setFixedColumn()
+  handleHeaderDrag(index, axisX) {
+    const {columnWidths, columnWidthsSource} = this.state
+    const tableOffset = this.refs.table.getBoundingClientRect()
+    let thWidths = 0
+    for (let i = 0; i < columnWidths.length; i ++) {
+      let width = columnWidths[i].width
+      if (i === index) {
+        width = width + axisX
+      }
+      thWidths = thWidths + width
     }
+    this.setState({
+      columnWidths: columnWidths.map((item, i) => {
+        let width = item.width + axisX
+        if (width < columnWidthsSource[i].width) {
+          width = columnWidthsSource[i].width
+        }
+        return {
+          ...item,
+          width: index === i ? width : item.width
+        }
+      }),
+      isFixed: thWidths > tableOffset.width
+    })
+  },
+
+  handleExpand(key) {
+    const {expandRows} = this.state
+    this.setState({
+      tableLayout: false,
+      expandRows: {
+        ...expandRows,
+        [key]: !expandRows[key]
+      }
+    }, () => {
+      const {columnWidths} = this.state
+      const tableOffset = this.refs.table.getBoundingClientRect()
+      const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
+      const nodes = getNodeWidth(tableHeader.querySelectorAll('th'))
+      let thWidths = 0
+      let widths = []
+      for (let i = 0; i < nodes.length; i ++) {
+        let width = nodes[i].width
+        if (width < columnWidths[i].width) {
+          width = columnWidths[i].width
+        }
+        widths.push({
+          width: width
+        })
+        thWidths = thWidths + width
+      }
+      this.setState({
+        tableLayout: true,
+        columnWidths: widths,
+        isFixed: thWidths > tableOffset.width
+      })
+    })
   },
 
   handleSort(key, sort) {
@@ -112,19 +175,6 @@ export default createClass({
     })
     this.setState({
       data: newData
-    })
-  },
-
-  handleExpand(key) {
-    const {expandRows} = this.state
-    this.setState({
-      tableLayout: false,
-      expandRows: {
-        ...expandRows,
-        [key]: !expandRows[key]
-      }
-    }, () => {
-      this.setFixedColumn()
     })
   },
 
@@ -280,10 +330,7 @@ export default createClass({
       leftCloumns = columns[0]
     }
     const colgroup = leftCloumns.map((col, i) => {
-      let width = columnWidths[i] && columnWidths[i].width
-      if (width < col.width) {
-        width = col.width
-      }
+      const width = columnWidths[i] && columnWidths[i].width
       return (!isFixedCloumn || col.fixed || isFixed) ? (
         <col style={{width: width, minWidth: width}} key={col.key} />
       ) : null
@@ -319,6 +366,7 @@ export default createClass({
         <table className="table" width={fixedColumnWidths} style={tableStyle}>
           {this.renderColGroup(true)}
           <TableHeader
+            onDrag={this.handleHeaderDrag}
             heights={columnsHeights}
             columns={leftCloumns} />
           {this.renderBody(isFixedHeader, true)}

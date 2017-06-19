@@ -28,6 +28,7 @@
   top: 0;
   bottom: 0;
   width: 8px;
+  z-index: 99;
 }
 
 .table-wrapper {

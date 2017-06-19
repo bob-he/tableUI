@@ -18,10 +18,13 @@ export default createClass({
 
   getInitialState() {
     return {
-      moveDistance: {},
-      thWidths: {},
+      lineColor: {},
+      lineLeft: {},
+      lineTop: {},
+      linePos: {},
       sorted: {},
-      axisX: {}
+      axisX: {},
+      aaaaa: {}
     }
   },
 
@@ -29,24 +32,33 @@ export default createClass({
     window.addEventListener('mouseup', this.handleMouseup)
   },
 
-  handleMousedown(key, e) {
+  componentWillUnmount() {
+    window.removeEventListener('mousemove', this.handleOnMousemove)
+  },
+
+  handleMousedown(index, e) {
     if (e.button === 2 || e.button === 3) {
       return
     }
+    const node = e.target.getBoundingClientRect()
     this.isMouseDown = true
-    const {axisX, moveDistance} = this.state
+    const {axisX} = this.state
     this.setState({
+      linePos: {
+        [index]: 'fixed'
+      },
+      lineLeft: {
+        [index]: node.left
+      },
+      lineTop: {
+        [index]: node.top
+      },
+      lineColor: {
+        [index]: '1px dotted #FF0000'
+      },
       cursor: 'move',
-      currentKey: key,
-      pageX: e.pageX,
-      axisX: {
-        ...axisX,
-        [key]: 0
-      },
-      moveDistance: {
-        ...moveDistance,
-        [key]: 0
-      },
+      currentIndex: index,
+      pageX: e.pageX
     }, () => {
       if (!this.moveHandler) {
         this.moveHandler = true
@@ -56,34 +68,44 @@ export default createClass({
   },
 
   handleMouseup() {
+    const {axisX, currentIndex} = this.state
     if (!this.isMouseDown) {
       return
     }
     this.isMouseDown = false
-    const {moveDistance, thWidths, currentKey, thWidthsSource} = this.state
-    const width = thWidths[currentKey] + moveDistance[currentKey]
     this.setState({
       'cursor': 'default',
-      'thWidths': {
-        ...thWidths,
-        [currentKey]: width > thWidthsSource[currentKey] ? width : thWidthsSource[currentKey]
-      }
+      linePos: {
+        [currentIndex]: 'absolute'
+      },
+      lineLeft: {
+        [currentIndex]: 'auto'
+      },
+      lineTop: {
+        [currentIndex]: 0
+      },
+      lineColor: {
+        [currentIndex]: 'none'
+      },
+      aaaaa: {
+        [currentIndex]: 0
+      },
+      axisX: 0
     }, () => {
       window.removeEventListener('mousemove', this.handleOnMousemove)
       this.moveHandler = false
       if (typeof this.props.onDrag === 'function') {
-        this.props.onDrag()
+        this.props.onDrag(currentIndex, axisX)
       }
     })
   },
 
   handleOnMousemove(e) {
-    const {moveDistance, pageX, currentKey} = this.state
-    const axisX = e.pageX - pageX
+    const {pageX, currentIndex} = this.state
     this.setState({
-      moveDistance: {
-        ...moveDistance,
-        [currentKey]: axisX
+      axisX: e.pageX - pageX,
+      aaaaa: {
+        [currentIndex]: e.pageX - pageX
       }
     })
   },
@@ -122,17 +144,17 @@ export default createClass({
       const thClass = classNames('table-title', col.className)
       const dragFlag = (
         <span
-          style={{cursor: cursor}}
+          style={{transform: `translate(${this.state.aaaaa[i]}px, 0px)`, borderRight: this.state.lineColor[i], cursor: cursor, left: this.state.lineLeft[i], top: this.state.lineTop[i], position: this.state.linePos[i]}}
           className="table-drag-flag"
           onMouseUp={this.handleMouseup}
-          onMouseDown={this.handleMousedown.bind(this, col.key)}>
+          onMouseDown={this.handleMousedown.bind(this, i)}>
         </span>
       )
       return (
         <th key={col.key} style={{height: heights[i] && heights[i].height}}>
           {col.title}
           {col.sort && sort}
-          {i !== 0 && i !== (columns.length - 1) && dragFlag}
+          {dragFlag}
         </th>
       )
     })
