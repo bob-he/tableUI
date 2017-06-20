@@ -14,15 +14,15 @@ const Page = createClass({
           width="100%"
           columns={[
             {key: 'x', title: '时间', fixed: 'left'},
-            {key: 'y0', title: '机锋机锋机锋', fixed: 'left', sort: true},
-            {key: 'y1', title: 'UC', sort: true, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
-            {key: 'y2', title: '华为商店华为商店', sort: true},
-            {key: 'y3', title: '联想游戏中心', sort: true},
-            {key: 'y4', title: '陌陌游戏', sort: true},
-            {key: 'y5', title: '游戏汇游戏汇游戏汇'},
-            {key: 'y6', title: 'OPPO游戏中心'},
-            {key: 'y7', title: '百度'},
-            {key: 'y8', title: '网易应用'},
+            {key: 'y0', title: '机锋机锋机锋', fixed: 'left', width: 140, sort: true},
+            {key: 'y1', title: 'UC', sort: true, width: 140, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
+            {key: 'y2', title: '华为商店华为商店', width: 140, sort: true},
+            {key: 'y3', title: '联想游戏中心', width: 140, sort: true},
+            {key: 'y4', title: '陌陌游戏', sort: true, width: 140},
+            {key: 'y5', title: '游戏汇游戏汇游戏汇', width: 140},
+            {key: 'y6', title: 'OPPO游戏中心', width: 140},
+            {key: 'y7', title: '百度', width: 140},
+            {key: 'y8', title: '网易应用', width: 140},
             {key: 'y9', title: 'APP'},
             {key: 'y10', title: 'st'}
           ]}
@@ -57,7 +57,7 @@ const Page = createClass({
                 },
                 {
                   'y0': 417,
-                  'y1': 0.0345,
+                  'y1': 0.045,
                   'y2': 0.0909,
                   'y3': 0.1875,
                   'y4': 1.3333,
@@ -71,7 +71,7 @@ const Page = createClass({
                 },
                 {
                   'y0': 417,
-                  'y1': 0.0345,
+                  'y1': 0.05,
                   'y2': 0.0909,
                   'y3': 0.1875,
                   'y4': 1.3333,

@@ -13,22 +13,40 @@
 }
 
 .table > thead > tr > th {
-  position: relative;
   height: 36px;
   padding: 5px 8px;
   text-align: left;
   background-color: #eef2f9;
-  border: 1px solid #e1e5f3;
+  border-bottom: 1px solid #e1e5f3;
   vertical-align: middle;
 }
 
 .table-drag-flag {
   position: absolute;
-  right: 0;
+  top: 0;
+  width: 10px;
+  margin-left: -5px;
+  background: transparent;
+  border-radius: 0;
+  vertical-align: top;
+  cursor: move;
+  z-index: 3;
+}
+
+.table-drag-flag-selected {
+  cursor: move;
+  height: 100%;
+  bottom: 0;
+}
+
+.table-drag-flag-selected .table-drag-flag-inner {
+  position: absolute;
   top: 0;
   bottom: 0;
-  width: 8px;
-  z-index: 99;
+  left: 50%;
+  margin-left: -1px;
+  width: 2px;
+  border: 1px dotted green;
 }
 
 .table-wrapper {
@@ -39,7 +57,7 @@
   padding: 5px 8px;
   height: 36px;
   background-color: #FFFFFF;
-  border: 1px solid #e1e5f3;
+  border-bottom: 1px solid #e1e5f3;
 }
 
 .table > tbody > tr:hover > td,
