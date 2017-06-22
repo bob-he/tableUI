@@ -7,7 +7,7 @@ import Drag from 'dragui'
 import classNames from 'classnames'
 import TableHeader from './tableHeader.jsx'
 import TableRow from './tableRow.jsx'
-import {getNodeWidth, getNodeHeight} from './utils.js'
+import {getObject, getNodeWidth, getNodeHeight} from './utils.js'
 import _ from 'lodash'
 import './style.css'
 
@@ -20,11 +20,15 @@ export default createClass({
     className: PropTypes.string,
     fixedHeader: PropTypes.bool,
     allowDragTable: PropTypes.bool,
-    allowDragColumn: PropTypes.bool
+    allowDragColumn: PropTypes.bool,
+    defaultOrdered: PropTypes.object,
+    expandIcon: PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element])
   },
 
   getInitialState() {
     return {
+      data: this.getInitialData(),
+      ordered: this.props.defaultOrdered || {},
       fixedHeaderPosition: 'absolute',
       tableScrollShadow: false,
       columnsHeights: [],
@@ -34,6 +38,14 @@ export default createClass({
       expandRows: {},
       fixedRowKey: '',
       axisX: 0
+    }
+  },
+
+  componentDidUpdate(nextProps) {
+    if (nextProps.data !== this.props.data) {
+      this.setState({
+        data: this.getInitialData()
+      })
     }
   },
 
@@ -51,6 +63,17 @@ export default createClass({
   componentWillUnmount() {
     window.onscroll = null
     this.refs.scroll.onscroll = null
+  },
+
+  getInitialData() {
+    let {data, columns, defaultOrdered} = this.props
+    if (defaultOrdered) {
+      const key = getObject(defaultOrdered).key
+      const col = _.find(columns, {key: key})
+      const sortFunc = col && col.sort
+      data = this.orderBy(data, defaultOrdered, sortFunc)
+    }
+    return data
   },
 
   setFixedColumn() {
@@ -218,21 +241,20 @@ export default createClass({
     })
   },
 
-  handleSort(key, sort) {
-    const {data} = this.props
-    const newData = data
-    newData.sort((a, b) => {
-      let reult = 0
-      if (sort === 'desc') {
-        reult = b[key] - a[key]
-      }
-      if (sort === 'asc') {
-        reult = a[key] - b[key]
-      }
-      return reult
-    })
+  orderBy(data, ordered, func) {
+    const orders = getObject(ordered).value
+    let sortby = getObject(ordered).key
+    if (typeof func === 'function') {
+      sortby = func
+    }
+    return _.orderBy(data, [sortby], [orders])
+  },
+
+  handleSort(ordered, func) {
+    const {data} = this.state
     this.setState({
-      data: newData
+      ordered: ordered,
+      data: this.orderBy(data, ordered, func)
     })
   },
 
@@ -250,7 +272,7 @@ export default createClass({
     })
   },
 
-  getRows(isFixedHeader, isFixedCloumn, data, indentIndex, parentKey) {
+  getRows(isFixedHeader, isFixedColumn, data, indentIndex, parentKey) {
     const {columns, rowKey} = this.props
     const {isFixed, rowStyles, rowHeights, expandRows} = this.state
     let rows = []
@@ -289,7 +311,7 @@ export default createClass({
           columns={columns}
           height={rowHeight}
           className={rowClass}
-          isFixedCloumn={isFixedCloumn}
+          isFixedColumn={isFixedColumn}
           expandIcon={children && expandIcon}
           expandIndent={expandIndent}
           onExpand={this.handleExpand.bind(this, key)}
@@ -299,7 +321,7 @@ export default createClass({
       if (!isFixedHeader && children && expandRows[key]) {
         indentIndex += 1
         rows = rows.concat(
-          this.getRows(isFixedHeader, isFixedCloumn, children, indentIndex, key)
+          this.getRows(isFixedHeader, isFixedColumn, children, indentIndex, key)
         )
         indentIndex -= 1
       }
@@ -308,9 +330,9 @@ export default createClass({
   },
 
   // 表格boody
-  renderBody(isFixedHeader, isFixedCloumn) {
-    let {data, rowKey} = this.props
-    let {fixedRowKey} = this.state
+  renderBody(isFixedHeader, isFixedColumn) {
+    let {rowKey} = this.props
+    let {data, fixedRowKey} = this.state
     const fixedRow = _.filter(data, (row) => {
       return fixedRowKey[rowKey(row)]
     })
@@ -321,17 +343,17 @@ export default createClass({
         data = []
       }
     }
-    const rows = this.getRows(isFixedHeader, isFixedCloumn, data, 0)
+    const rows = this.getRows(isFixedHeader, isFixedColumn, data, 0)
     return (
-      <tbody ref={isFixedCloumn ? '' : 'tableTbody'}>{rows}</tbody>
+      <tbody ref={isFixedColumn ? '' : 'tableTbody'}>{rows}</tbody>
     )
   },
 
-  renderColGroup(isFixedCloumn) {
+  renderColGroup(isFixedColumn) {
     const {columns} = this.props
     const {isFixed, columnWidths} = this.state
     let leftCloumns = columns
-    if (isFixedCloumn && isFixed) {
+    if (isFixedColumn && isFixed) {
       leftCloumns = columns.filter((col, i) => {return col.fixed})
     }
     if (leftCloumns.length === 0) {
@@ -339,7 +361,7 @@ export default createClass({
     }
     const colgroup = leftCloumns.map((col, i) => {
       const width = columnWidths[i] && columnWidths[i].width
-      return (!isFixedCloumn || col.fixed || isFixed) ? (
+      return (!isFixedColumn || col.fixed || isFixed) ? (
         <col style={{width: width, minWidth: width}} key={col.key} />
       ) : null
     })
@@ -351,7 +373,7 @@ export default createClass({
     return (
       <Drag
         axis='x'
-        className="table-drag"
+        className="table-drag-flag"
         leftWay={tableScrollShadow}
         rightWay={tableFixedColumnShadow}
         range={[100, 400, 100, 400]}
@@ -371,6 +393,7 @@ export default createClass({
   renderTable(isFixedHeader) {
     const {width, columns, allowDragTable} = this.props
     const {
+      ordered,
       isFixed,
       tableLayout,
       tableFixedColumnShadow,
@@ -403,10 +426,11 @@ export default createClass({
         <table className="table" style={tableStyle} width={fixedColumnWidths}>
           {this.renderColGroup(true)}
           <TableHeader
-            onDrag={this.handleHeaderDrag}
-            heights={columnsHeights}
+            ordered={ordered}
+            onSort={this.handleSort}
             columns={leftCloumns}
-            onSort={this.handleSort} />
+            onDrag={this.handleHeaderDrag}
+            heights={columnsHeights} />
           {this.renderBody(isFixedHeader, true)}
         </table>
       </div>
@@ -424,11 +448,12 @@ export default createClass({
           <table className="table" width={width} style={tableStyle}>
             {this.renderColGroup()}
             <TableHeader
-              onDrag={this.handleHeaderDrag}
+              ref={isFixedHeader ? '' : 'tableHeader'}
               columns={columns}
               heights={columnsHeights}
-              ref={isFixedHeader ? '' : 'tableHeader'}
-              onSort={this.handleSort} />
+              ordered={ordered}
+              onSort={!isFixedHeader && this.handleSort}
+              onDrag={this.handleHeaderDrag} />
             {this.renderBody(isFixedHeader)}
           </table>
         </div>
@@ -449,8 +474,8 @@ export default createClass({
       const left = isFixed && item.fixed ? fixedWidth : width
       const height = columnsHeights[i] && columnsHeights[i].height
       const dragClass = classNames(
-        'table-drag-flag',
-        {'table-drag-flag-selected': mouseDownDragIndex === i}
+        'header-drag-flag',
+        {'header-drag-flag-selected': mouseDownDragIndex === i}
       )
       return (
         <Drag
@@ -464,7 +489,7 @@ export default createClass({
           onDrag={this.handleHeaderDrag.bind(this, i)}
           onMouseDown={this.handleHeaderDragMouseDown.bind(this, i)}
         >
-          <div className="table-drag-flag-inner"></div>
+          <div className="header-drag-flag-inner"></div>
         </Drag>
       )
     })

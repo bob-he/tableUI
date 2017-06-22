@@ -13,47 +13,40 @@ export default createClass({
     onDrag: PropTypes.func,
     columns: PropTypes.array,
     heights: PropTypes.array,
-    onSort: PropTypes.func
+    onSort: PropTypes.any,
+    ordered: PropTypes.object
   },
 
-  getInitialState() {
-    return {
-      sorted: {}
+  handleSort(key, func) {
+    const {ordered} = this.props
+    if (typeof this.props.onSort === 'function') {
+      this.props.onSort({
+        [key]: ordered[key] === 'asc' ? 'desc' : 'asc'
+      }, func)
     }
   },
 
-  handleSort(key) {
-    const {sorted} = this.state
-    const sort = sorted[key] === 'asc' ? 'desc' : 'asc'
-    this.setState({
-      sorted: {
-        [key]: sort
-      }
-    }, () => {
-      if (typeof this.props.onSort === 'function') {
-        this.props.onSort(key, sort)
-      }
-    })
-  },
-
   render() {
-    const {sorted} = this.state
-    let {columns, heights} = this.props
+    const {ordered, columns, heights} = this.props
     const thColumns = columns.map((col, i) => {
       let sortIcon = <Icon type="sort" />
-      if (sorted[col.key] === 'asc') {
+      if (ordered[col.key] === 'asc') {
         sortIcon = <Icon type="sortasc" />
       }
-      if (sorted[col.key] === 'desc') {
+      if (ordered[col.key] === 'desc') {
         sortIcon = <Icon type="sortdesc" />
       }
       const sort = (
-        <span className="table-sort" onClick={this.handleSort.bind(this, col.key)}>
-        {sortIcon}
+        <span
+          className="table-sort"
+          onClick={this.handleSort.bind(this, col.key, col.sort)}
+        >
+          {sortIcon}
         </span>
       )
+      const height = heights[i] && heights[i].height
       return (
-        <th key={col.key} style={{height: heights[i] && heights[i].height}}>
+        <th key={col.key} style={{height: height}}>
           {col.title}
           {col.sort && sort}
         </th>

@@ -6,14 +6,19 @@ import 'iconui/lib/style.css'
 
 const Page = createClass({
   render: function() {
+    const sortBy = (row) => {
+      return row.x.length
+    }
     return (
       <div style={{width: 900, margin: '200px 100px'}}>
         <Table
+          allowDragTable
+          allowDragColumn
           rowKey={record => record.x}
           className="table-bordered"
           width="100%"
           columns={[
-            {key: 'x', title: '时间', fixed: 'left'},
+            {key: 'x', title: '时间', fixed: 'left', sort: sortBy},
             {key: 'y0', title: '机锋机锋机锋', fixed: 'left', width: 140, sort: true},
             {key: 'y1', title: 'UC', sort: true, width: 140, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
             {key: 'y2', title: '华为商店华为商店', width: 140, sort: true},
@@ -39,7 +44,7 @@ const Page = createClass({
               'y8': 0.0769,
               'y9': 0.0453,
               'y10': 0.0584,
-              'x': '201656055601',
+              'x': '2016560556',
               'children': [
                 {
                   'y0': 417,
@@ -507,7 +512,7 @@ const Page = createClass({
               'y8': 0.4,
               'y9': 0.0453,
               'y10': 0.0584,
-              'x': '201656055606'
+              'x': '我们'
             },
             {
               'y0': 818,
@@ -661,7 +666,7 @@ const Page = createClass({
               'y8': 0.0811,
               'y9': 0.0453,
               'y10': 0.0584,
-              'x': '201656055617'
+              'x': '2016'
             },
             {
               'y0': 337,

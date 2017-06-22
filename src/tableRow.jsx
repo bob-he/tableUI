@@ -8,7 +8,7 @@ import './style.css'
 
 export default createClass({
   propTypes: {
-    isFixedCloumn: PropTypes.bool,
+    isFixedColumn: PropTypes.bool,
     expandStatus: PropTypes.bool,
     className: PropTypes.string,
     onMouseover: PropTypes.func,
@@ -42,9 +42,9 @@ export default createClass({
   },
 
   renderTableTell() {
-    let {isFixed, isFixedCloumn, columns, row, expandIcon, expandIndent} = this.props
+    let {isFixed, isFixedColumn, columns, row, expandIcon, expandIndent} = this.props
     let leftCloumns = columns
-    if (isFixedCloumn && isFixed) {
+    if (isFixedColumn && isFixed) {
       leftCloumns = columns.filter((col, i) => {return col.fixed})
     }
     if (leftCloumns.length === 0) {
@@ -55,7 +55,7 @@ export default createClass({
       if (col.render) {
         value = col.render(row[col.key], row)
       }
-      return (!isFixedCloumn || col.fixed || isFixed) && (
+      return (!isFixedColumn || col.fixed || isFixed) && (
         <TableCell
           key={col.key}
           value={value}

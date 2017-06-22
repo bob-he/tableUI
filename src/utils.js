@@ -12,6 +12,27 @@ function getStyleNumber(node) {
   }
 }
 
+export function getObject(obj) {
+  if (!obj) {
+    return obj
+  }
+  const keys = _.keys(obj)
+  return {
+    key: keys[0],
+    value: obj[keys[0]]
+  }
+}
+
+export function getObjects(obj) {
+  const keys = _.keys(obj)
+  return keys.map(key => {
+    return {
+      key: key,
+      value: obj[key]
+    }
+  })
+}
+
 export function getNodeWidth(nodes) {
   return _.toArray(nodes).map(node => {
     const offset = node.getBoundingClientRect()

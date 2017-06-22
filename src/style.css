@@ -21,7 +21,7 @@
   vertical-align: middle;
 }
 
-.table-drag-flag {
+.header-drag-flag {
   position: absolute;
   top: 0;
   width: 10px;
@@ -33,13 +33,13 @@
   z-index: 3;
 }
 
-.table-drag-flag-selected {
+.header-drag-flag-selected {
   cursor: move;
   height: 100%;
   bottom: 0;
 }
 
-.table-drag-flag-selected .table-drag-flag-inner {
+.header-drag-flag-selected .header-drag-flag-inner {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -142,7 +142,7 @@
   cursor: pointer;
 }
 
-.table-drag {
+.table-drag-flag {
   position: absolute;
   left: 50%;
   margin-left: -20px;
@@ -151,26 +151,26 @@
   line-height: 40px;
 }
 
-.table-drag .icon-caretleft {
+.table-drag-flag .icon-caretleft {
   margin-left: -5px;
   font-size: 35px;
   color: #FFFFFF;
 }
 
-.table-drag .icon-caretright {
+.table-drag-flag .icon-caretright {
   margin-left: 5px;
   font-size: 35px;
   color: #FFFFFF;
 }
 
-.table-drag .icon + .icon {
+.table-drag-flag .icon + .icon {
   margin-left: -20px;
 }
 
-.table-wrapper .table-drag {
+.table-wrapper .table-drag-flag {
   display: none;
 }
 
-.table-wrapper:hover .table-drag {
+.table-wrapper:hover .table-drag-flag {
   display: block;
 }
