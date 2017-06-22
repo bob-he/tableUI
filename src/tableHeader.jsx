@@ -6,7 +6,6 @@ import Icon from 'iconui'
 import classNames from 'classnames'
 import {setHeaderOffset} from './utils.js'
 import _ from 'lodash'
-import './style.css'
 
 export default createClass({
   propTypes: {

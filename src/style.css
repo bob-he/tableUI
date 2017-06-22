@@ -6,7 +6,7 @@
   box-sizing: border-box;
 }
 .table {
-  background-color: transparent;
+  background-color: #FFFFFF;
   border-spacing: 0;
   border-collapse: collapse;
   font-size: 12px;
@@ -56,16 +56,15 @@
 .table > tbody > tr > td {
   padding: 5px 8px;
   height: 36px;
-  background-color: #FFFFFF;
   border-bottom: 1px solid #e1e5f3;
 }
 
-.table > tbody > tr:hover > td,
-.table > tbody > tr.table-row-hover > td {
+.table > tbody > tr:hover,
+.table > tbody > tr.table-row-hover {
   background-color: #eaf8fe;
 }
 
-.table > tbody > tr.table-row-selected > td {
+.table > tbody > tr.table-row-selected {
   background-color: #eef2f9;
 }
 
@@ -173,4 +172,8 @@
 
 .table-wrapper:hover .table-drag-flag {
   display: block;
+}
+
+.table > tbody > tr.td-red {
+  background-color: #FF0000!important; 
 }

@@ -9,6 +9,7 @@ const Page = createClass({
     const sortBy = (row) => {
       return row.x.length
     }
+    
     return (
       <div style={{width: 900, margin: '200px 100px'}}>
         <Table

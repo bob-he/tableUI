@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import createClass from 'create-react-class'
 import classNames from 'classnames'
 import _ from 'lodash'
-import './style.css'
 
 export default createClass({
   propTypes: {

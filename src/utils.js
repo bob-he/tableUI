@@ -12,6 +12,19 @@ function getStyleNumber(node) {
   }
 }
 
+function getSplice(array, obj) {
+  if (array.length === 1) {
+    return true
+  }
+  let newArray = _.clone(array, true)
+  newArray.splice(0, 1)
+  const index = _.findIndex(newArray, obj)
+  if (index > 0) {
+    return false
+  }
+  return getSplice(newArray, obj)
+}
+
 export function getObject(obj) {
   if (!obj) {
     return obj
@@ -52,4 +65,93 @@ export function getNodeHeight(nodes) {
       height: offset.height
     }
   })
+}
+
+export function getArray(key, array1, array2) {
+  if (array1.length !== array2.length) {
+    return console.error('参数错误')
+  }
+  if (!_.isPlainObject(array1[0])) {
+    return console.error('参数错误')
+  }
+  if (!_.isPlainObject(array2[0])) {
+    return console.error('参数错误')
+  }
+  let array = []
+  for (let i = 0; i < array1.length; i++) {
+    let value = array1[i][key]
+    if (array2[i][key] && value < array2[i][key]) {
+      value = array2[i][key]
+    }
+    array.push({
+      [key]: value
+    })
+  }
+  return array
+}
+
+export function getSum(key, array1, array2) {
+  if (!_.isPlainObject(array1[0])) {
+    return console.error('参数错误')
+  }
+  if (array2 && array1.length !== array2.length) {
+    return console.error('参数错误')
+  }
+  if (array2 && !_.isPlainObject(array2[0])) {
+    return console.error('参数错误')
+  }
+  let sum = 0
+  for (let i = 0; i < array1.length; i++) {
+    let value = array1[i][key]
+    if (array2 && array2[i][key] && value < array2[i][key]) {
+      value = array2[i][key]
+    }
+    sum += value
+  }
+  return sum
+}
+
+export function getFilter(obj, array1, array2) {
+  if (!_.isPlainObject(array1[0])) {
+    return console.error('参数错误')
+  }
+  if (array2 && array1.length !== array2.length) {
+    return console.error('参数错误')
+  }
+  if (array2 && !_.isPlainObject(array2[0])) {
+    return console.error('参数错误')
+  }
+  let newArray = []
+  let counts = 0
+  for (let key in obj) {
+    for (let i = 0; i < array1.length; i++) {
+      if (array1[i][key] === obj[key]) {
+        if (array2) {
+          newArray.push(array2[i])
+        } else {
+          newArray.push(array1[i])
+        }
+      } else {
+        counts += 1
+      }
+    }
+  }
+  if (counts === array1.length) {
+    newArray = [array1[0]]
+    if (array2) {
+      newArray = [array2[0]]
+    }
+  } 
+  return newArray
+}
+
+export function isSequential(array, obj) {
+  let index = _.findIndex(array, obj)
+  if (index === -1) {
+    return true
+  }
+  if (index === 0) {
+    return getSplice(array, obj)
+  }
+  return false
 }

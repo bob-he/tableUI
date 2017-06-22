@@ -4,7 +4,6 @@ import createClass from 'create-react-class'
 import classNames from 'classnames'
 import TableCell from './tableCell.jsx'
 import _ from 'lodash'
-import './style.css'
 
 export default createClass({
   propTypes: {
@@ -19,6 +18,7 @@ export default createClass({
     columns: PropTypes.array,
     isFixed: PropTypes.bool,
     height: PropTypes.number,
+    index: PropTypes.number,
     row: PropTypes.object
   },
 
@@ -42,7 +42,7 @@ export default createClass({
   },
 
   renderTableTell() {
-    let {isFixed, isFixedColumn, columns, row, expandIcon, expandIndent} = this.props
+    let {isFixed, isFixedColumn, columns, row, index, expandIcon, expandIndent} = this.props
     let leftCloumns = columns
     if (isFixedColumn && isFixed) {
       leftCloumns = columns.filter((col, i) => {return col.fixed})
@@ -53,7 +53,7 @@ export default createClass({
     return leftCloumns.map((col, i) => {
       let value = row[col.key]
       if (col.render) {
-        value = col.render(row[col.key], row)
+        value = col.render(row[col.key], row, index)
       }
       return (!isFixedColumn || col.fixed || isFixed) && (
         <TableCell

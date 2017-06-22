@@ -5,9 +5,10 @@ import ReactDOM from 'react-dom'
 import Icon from 'iconui'
 import Drag from 'dragui'
 import classNames from 'classnames'
+import TableColGroup from './tableColGroup.jsx'
 import TableHeader from './tableHeader.jsx'
 import TableRow from './tableRow.jsx'
-import {getObject, getNodeWidth, getNodeHeight} from './utils.js'
+import {getSum, getArray, getObject, getFilter, getNodeWidth, getNodeHeight, isSequential} from './utils.js'
 import _ from 'lodash'
 import './style.css'
 
@@ -18,11 +19,13 @@ export default createClass({
     data: PropTypes.array,
     rowKey: PropTypes.func,
     className: PropTypes.string,
+    rowClassName: PropTypes.func,
     fixedHeader: PropTypes.bool,
     allowDragTable: PropTypes.bool,
     allowDragColumn: PropTypes.bool,
     defaultOrdered: PropTypes.object,
-    expandIcon: PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element])
+    onExpand: PropTypes.func,
+    expandIcon: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
   },
 
   getInitialState() {
@@ -81,13 +84,13 @@ export default createClass({
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     const nodes = getNodeWidth(tableHeader.querySelectorAll('th'))
-    let thWidths = 0
+    let columnsWidth = 0
     for (let i = 0; i < nodes.length; i ++) {
-      thWidths = thWidths + (columns[i].width || nodes[i].width)
+      columnsWidth = columnsWidth + (columns[i].width || nodes[i].width)
     }
     this.setState({
-      isFixed: thWidths > tableOffset.width,
-      tableScrollShadow: thWidths > tableOffset.width
+      isFixed: columnsWidth > tableOffset.width,
+      tableScrollShadow: columnsWidth > tableOffset.width
     }, () => {
       this.setTableOffset()
     })
@@ -97,19 +100,15 @@ export default createClass({
     const {columns} = this.props
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableTbody = ReactDOM.findDOMNode(this.refs.tableTbody)
+    const rowHeights = getNodeHeight(tableTbody.querySelectorAll('tr'))
+
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
-    const columnWidths = getNodeWidth(tableHeader.querySelectorAll('th')).map((item, i) => {
-      let width = item.width
-      if (columns[i].width && columns[i].width > item.width) {
-        width = columns[i].width
-      }
-      return {
-        width: width
-      }
-    })
+    const columnNodes = tableHeader.querySelectorAll('th')
+    const columnWidths = getArray('width', getNodeWidth(columnNodes), columns)
+
     this.setState({
       tableLayout: true,
-      rowHeights: getNodeHeight(tableTbody.querySelectorAll('tr')),
+      rowHeights: rowHeights,
       columnWidths: columnWidths,
       columnWidthsSource: columnWidths,
       tableWidth: tableOffset.width,
@@ -159,8 +158,7 @@ export default createClass({
   handleHorizontalScroll() {
     const {tableWidth} = this.state
     const {fixedHeader} = this.props
-    let {scrollLeft, scrollWidth} = this.refs.scroll
-    // this.refs.dragFlag.scrollLeft = scrollLeft
+    const {scrollLeft, scrollWidth} = this.refs.scroll
     if (fixedHeader) {
       this.refs.headerScroll.scrollLeft = scrollLeft
     }
@@ -177,9 +175,9 @@ export default createClass({
   },
 
   handleHeaderDrag(index, axisX) {
-    let {columnWidths, columnWidthsSource, tableWidth} = this.state
-    let thWidths = 0
-    columnWidths = columnWidths.map((item, i) => {
+    const {columnWidths, columnWidthsSource, tableWidth} = this.state
+    let columnsWidth = 0
+    const widths = columnWidths.map((item, i) => {
       let width = item.width
       if (i === index) {
         width = width + axisX
@@ -187,16 +185,15 @@ export default createClass({
       if (width < columnWidthsSource[i].width) {
         width = columnWidthsSource[i].width
       }
-      thWidths = thWidths + width
-      return {
-        ...item,
-        width: width
-      }
+      columnsWidth += width
+      return {...item, width: width}
     })
+    const {scrollLeft, scrollWidth} = this.refs.scroll
     this.setState({
       mouseDownDragIndex: null,
-      columnWidths: columnWidths,
-      isFixed: thWidths > tableWidth
+      columnWidths: widths,
+      isFixed: columnsWidth > tableWidth,
+      tableScrollShadow: (tableWidth + scrollLeft) !== scrollWidth
     })
   },
 
@@ -207,8 +204,12 @@ export default createClass({
     })
   },
 
-  handleExpand(key) {
-    const {expandRows} = this.state
+  handleExpand(row, key) {
+    const {onExpand} = this.props
+    const {expandRows, columnWidths, tableWidth} = this.state
+    if (typeof onExpand === 'function') {
+      onExpand(!expandRows[key], row)
+    }
     this.setState({
       tableLayout: false,
       expandRows: {
@@ -216,25 +217,13 @@ export default createClass({
         [key]: !expandRows[key]
       }
     }, () => {
-      const {columnWidths, tableWidth} = this.state
       const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
-      const nodes = getNodeWidth(tableHeader.querySelectorAll('th'))
-      let thWidths = 0
-      let widths = []
-      for (let i = 0; i < nodes.length; i ++) {
-        let width = nodes[i].width
-        if (width < columnWidths[i].width) {
-          width = columnWidths[i].width
-        }
-        widths.push({
-          width: width
-        })
-        thWidths = thWidths + width
-      }
+      const columnNodes = tableHeader.querySelectorAll('th')
+      const columnsWidth = getSum('width', getNodeWidth(columnNodes), columnWidths)
       this.setState({
         tableLayout: true,
-        columnWidths: widths,
-        isFixed: thWidths > tableWidth
+        columnWidths: getArray('width', getNodeWidth(columnNodes), columnWidths),
+        isFixed: columnsWidth > tableWidth
       }, () => {
         this.refs.scroll.scrollLeft = this.scrollLeft
       })
@@ -273,7 +262,7 @@ export default createClass({
   },
 
   getRows(isFixedHeader, isFixedColumn, data, indentIndex, parentKey) {
-    const {columns, rowKey} = this.props
+    const {columns, rowKey, rowClassName} = this.props
     const {isFixed, rowStyles, rowHeights, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
@@ -290,12 +279,16 @@ export default createClass({
       const children = data[i].children
       const rowClass = classNames(
         rowStyles[key],
+        (typeof rowClassName === 'function') && rowClassName(data[i], i),
         {'table-row-selected': expandRows[key]}
       )
-      const expandInner = expandRows[key] ? <Icon type="caretdown" /> : <Icon type="caretright" />
+      let expandInner = expandRows[key] ? <Icon type="caretdown" /> : <Icon type="caretright" />
+      if (this.props.expandIcon) {
+        expandInner = this.props.expandIcon
+      }
       const expandIcon = (
         <span className="table-row-expand-icon" 
-          onClick={this.handleExpand.bind(this, key)}>
+          onClick={this.handleExpand.bind(this, data[i], key)}>
           {expandInner}
         </span>
       )
@@ -306,6 +299,7 @@ export default createClass({
         <TableRow
           key={key}
           ref={rowRef}
+          index={i}
           row={data[i]}
           isFixed={isFixed}
           columns={columns}
@@ -314,7 +308,7 @@ export default createClass({
           isFixedColumn={isFixedColumn}
           expandIcon={children && expandIcon}
           expandIndent={expandIndent}
-          onExpand={this.handleExpand.bind(this, key)}
+          onExpand={this.handleExpand.bind(this, data[i], key)}
           onMouseout={this.handleRowMouseout}
           onMouseover={this.handleRowMouseover.bind(this, key)} />
       )
@@ -349,129 +343,17 @@ export default createClass({
     )
   },
 
-  renderColGroup(isFixedColumn) {
-    const {columns} = this.props
-    const {isFixed, columnWidths} = this.state
-    let leftCloumns = columns
-    if (isFixedColumn && isFixed) {
-      leftCloumns = columns.filter((col, i) => {return col.fixed})
-    }
-    if (leftCloumns.length === 0) {
-      leftCloumns = columns[0]
-    }
-    const colgroup = leftCloumns.map((col, i) => {
-      const width = columnWidths[i] && columnWidths[i].width
-      return (!isFixedColumn || col.fixed || isFixed) ? (
-        <col style={{width: width, minWidth: width}} key={col.key} />
-      ) : null
-    })
-    return <colgroup>{colgroup}</colgroup>
-  },
-
-  getTableDragFlag() {
-    const {tableFixedColumnShadow, tableScrollShadow} = this.state
-    return (
-      <Drag
-        axis='x'
-        className="table-drag-flag"
-        leftWay={tableScrollShadow}
-        rightWay={tableFixedColumnShadow}
-        range={[100, 400, 100, 400]}
-        onDrag={this.handleDrag}
-      >
-        {
-          tableScrollShadow && <Icon type="caretleft" />
-        }
-        {
-          tableFixedColumnShadow && <Icon type="caretright" />
-        }
-      </Drag>
-    )
-  },
-
-  // 表格
-  renderTable(isFixedHeader) {
-    const {width, columns, allowDragTable} = this.props
-    const {
-      ordered,
-      isFixed,
-      tableLayout,
-      tableFixedColumnShadow,
-      tableScrollShadow,
-      columnsHeights,
-      columnWidths
-    } = this.state
-    const index = _.findIndex(columns, 'fixed')
-    if (index > 0) {
-      // TODO 正确配置columns的判断方法
-      return console.error('请正确配置columns')
-    }
-    const fixedColumnStyle = classNames(
-      'table-fixed-column',
-      {'table-fixed-column-shadow': tableFixedColumnShadow}
-    )
-    let leftCloumns = columns.filter((col, i) => {
-      return col.fixed
-    })
-    if (leftCloumns.length === 0) {
-      leftCloumns = [columns[0]]
-    }
-    let fixedColumnWidths = 0
-    for (let i = 0; i < leftCloumns.length; i++) {
-      fixedColumnWidths += columnWidths[i]
-    }
-    const tableStyle = tableLayout ? {tableLayout: 'fixed'} : {}
-    const fixedColumn = (
-      <div className={fixedColumnStyle}>
-        <table className="table" style={tableStyle} width={fixedColumnWidths}>
-          {this.renderColGroup(true)}
-          <TableHeader
-            ordered={ordered}
-            onSort={this.handleSort}
-            columns={leftCloumns}
-            onDrag={this.handleHeaderDrag}
-            heights={columnsHeights} />
-          {this.renderBody(isFixedHeader, true)}
-        </table>
-      </div>
-    )
-    const headerRef = isFixedHeader ? `headerScroll` : `scroll`
-    const tableScrollStyle = classNames(
-      {'table-scroll': isFixed},
-      {'table-scroll-shadow': tableScrollShadow}
-    )
-    return (
-      <div style={{position: 'relative'}}>
-        {isFixed && fixedColumn}
-        {allowDragTable && !isFixedHeader && isFixed && this.getTableDragFlag()}
-        <div ref={headerRef} className={tableScrollStyle}>
-          <table className="table" width={width} style={tableStyle}>
-            {this.renderColGroup()}
-            <TableHeader
-              ref={isFixedHeader ? '' : 'tableHeader'}
-              columns={columns}
-              heights={columnsHeights}
-              ordered={ordered}
-              onSort={!isFixedHeader && this.handleSort}
-              onDrag={this.handleHeaderDrag} />
-            {this.renderBody(isFixedHeader)}
-          </table>
-        </div>
-      </div>
-    )
-  },
-
   getColumnDragFlag() {
     const {columns} = this.props
     const {isFixed, columnWidths, columnsHeights, mouseDownDragIndex} = this.state
-    let fixedWidth = 0
-    let width = this.scrollLeft ? -this.scrollLeft : 0
+    let leftColumnsWidth = 0
+    let columnsWidth = this.scrollLeft ? -this.scrollLeft : 0
     return columns.map((item, i) => {
-      width = columnWidths[i] && (width + columnWidths[i].width)
+      columnsWidth = columnWidths[i] && (columnsWidth + columnWidths[i].width)
       if (isFixed && item.fixed) {
-        fixedWidth = columnWidths[i] && (fixedWidth + columnWidths[i].width)
+        leftColumnsWidth = columnWidths[i] && (leftColumnsWidth + columnWidths[i].width)
       }
-      const left = isFixed && item.fixed ? fixedWidth : width
+      const left = isFixed && item.fixed ? leftColumnsWidth : columnsWidth
       const height = columnsHeights[i] && columnsHeights[i].height
       const dragClass = classNames(
         'header-drag-flag',
@@ -493,6 +375,95 @@ export default createClass({
         </Drag>
       )
     })
+  },
+
+  getTableDragFlag() {
+    const {tableFixedColumnShadow, tableScrollShadow} = this.state
+    return (
+      <Drag
+        axis='x'
+        className="table-drag-flag"
+        leftWay={tableScrollShadow}
+        rightWay={tableFixedColumnShadow}
+        range={[100, 400, 100, 400]}
+        onDrag={this.handleDrag}
+      >
+        {tableScrollShadow && <Icon type="caretleft" />}
+        {tableFixedColumnShadow && <Icon type="caretright" />}
+      </Drag>
+    )
+  },
+
+  // 表格
+  renderTable(isFixedHeader) {
+    const {width, columns, allowDragTable} = this.props
+    const {
+      ordered,
+      isFixed,
+      tableLayout,
+      tableFixedColumnShadow,
+      tableScrollShadow,
+      columnsHeights,
+      columnWidths
+    } = this.state
+    if (!isSequential(columns, {fixed: 'left'})) {
+      return console.error('请正确配置columns')
+    }
+    const fixedColumnStyle = classNames(
+      'table-fixed-column',
+      {'table-fixed-column-shadow': tableFixedColumnShadow}
+    )
+    let leftCloumns = getFilter({fixed: 'left'}, columns)
+    let leftColumnWidths = []
+    let leftColumnsWidth = 0
+    if (columnWidths.length > 0) {
+      leftColumnWidths = getFilter({fixed: 'left'}, columns, columnWidths)
+      leftColumnsWidth = getSum('width', leftColumnWidths)
+    }
+    
+    const tableStyle = tableLayout ? {tableLayout: 'fixed'} : {}
+    const fixedColumn = (
+      <div className={fixedColumnStyle}>
+        <table className="table" style={tableStyle} width={leftColumnsWidth}>
+          <TableColGroup
+            columns={leftCloumns}
+            widths={leftColumnWidths} />
+          <TableHeader
+            ordered={ordered}
+            onSort={this.handleSort}
+            columns={leftCloumns}
+            onDrag={this.handleHeaderDrag}
+            heights={columnsHeights} />
+          {this.renderBody(isFixedHeader, true)}
+        </table>
+      </div>
+    )
+    const headerRef = isFixedHeader ? `headerScroll` : `scroll`
+    const tableScrollStyle = classNames(
+      {'table-scroll': isFixed},
+      {'table-scroll-shadow': tableScrollShadow}
+    )
+    return (
+      <div style={{position: 'relative'}}>
+        {isFixed && fixedColumn}
+        {allowDragTable && !isFixedHeader && isFixed && this.getTableDragFlag()}
+        <div ref={headerRef} className={tableScrollStyle}>
+          <table className="table" width={width} style={tableStyle}>
+            <TableColGroup
+              columns={columns}
+              widths={columnWidths} />
+            <TableHeader
+              ref={isFixedHeader ? '' : 'tableHeader'}
+              columns={columns}
+              heights={columnsHeights}
+              ordered={ordered}
+              onSort={!isFixedHeader && this.handleSort}
+              onDrag={this.handleHeaderDrag} />
+            {this.renderBody(isFixedHeader)}
+          </table>
+        </div>
+      </div>
+    )
   },
 
   render() {
