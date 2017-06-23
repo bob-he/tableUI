@@ -17,7 +17,7 @@
   padding: 5px 8px;
   text-align: left;
   background-color: #eef2f9;
-  border-bottom: 1px solid #e1e5f3;
+  border: 1px solid #e1e5f3;
   vertical-align: middle;
 }
 
@@ -56,7 +56,7 @@
 .table > tbody > tr > td {
   padding: 5px 8px;
   height: 36px;
-  border-bottom: 1px solid #e1e5f3;
+  border: 1px solid #e1e5f3;
 }
 
 .table > tbody > tr:hover,
@@ -76,7 +76,7 @@
 }
 
 .table-fixed-column-shadow {
-  box-shadow: 2px 0 20px 2px #EEEEEE;
+  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, 0.2);
 }
 
 .table-scroll {
@@ -86,12 +86,12 @@
 .table-scroll-shadow:before {
   content: "";
   position: absolute;
-  width: 2px;
+  width: 15px;
   height: 100%;
   top: 0;
   bottom: 0;
-  right: -2px;
-  box-shadow: -5px 0 20px 2px #DDDDDD;
+  right: -15px;
+  box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.2);
 }
 
 .table-absolute-header {

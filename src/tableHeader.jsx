@@ -45,7 +45,7 @@ export default createClass({
       )
       const height = heights[i] && heights[i].height
       return (
-        <th key={col.key} style={{height: height}}>
+        <th key={col.key} colSpan={col.colSpan} style={{height: height, display: col.colSpan === 0 ? 'none' : ''}}>
           {col.title}
           {col.sort && sort}
         </th>

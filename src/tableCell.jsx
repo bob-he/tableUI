@@ -6,18 +6,19 @@ import _ from 'lodash'
 
 export default createClass({
   propTypes: {
-    value: PropTypes.any,
+    rowSpan: PropTypes.number,
+    children: PropTypes.any,
     expandIcon: PropTypes.any,
     expandIndent: PropTypes.any
   },
 
   render() {
-    const {value, expandIcon, expandIndent} = this.props
-    return (
-      <td>
+    const {children, rowSpan, expandIcon, expandIndent} = this.props
+    return rowSpan !== 0 && (
+      <td rowSpan={rowSpan}>
         {expandIndent}
         {expandIcon}
-        {value}
+        {children}
       </td>
     )
   }

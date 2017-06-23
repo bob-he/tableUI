@@ -7,7 +7,6 @@ import _ from 'lodash'
 
 export default createClass({
   propTypes: {
-    isFixedColumn: PropTypes.bool,
     expandStatus: PropTypes.bool,
     className: PropTypes.string,
     onMouseover: PropTypes.func,
@@ -16,7 +15,6 @@ export default createClass({
     expandIndent: PropTypes.any,
     expandIcon: PropTypes.any,
     columns: PropTypes.array,
-    isFixed: PropTypes.bool,
     height: PropTypes.number,
     index: PropTypes.number,
     row: PropTypes.object
@@ -42,25 +40,24 @@ export default createClass({
   },
 
   renderTableTell() {
-    let {isFixed, isFixedColumn, columns, row, index, expandIcon, expandIndent} = this.props
-    let leftCloumns = columns
-    if (isFixedColumn && isFixed) {
-      leftCloumns = columns.filter((col, i) => {return col.fixed})
-    }
-    if (leftCloumns.length === 0) {
-      leftCloumns = columns[0]
-    }
-    return leftCloumns.map((col, i) => {
-      let value = row[col.key]
+    let {columns, row, index, expandIcon, expandIndent} = this.props
+    return columns.map((col, i) => {
+      let children = {}
+      children.value = row[col.key]
       if (col.render) {
-        value = col.render(row[col.key], row, index)
+        const result = col.render(row[col.key], row, index)
+        children.value = result.children || result
+        children.props = result.children ? result.props : {}
       }
-      return (!isFixedColumn || col.fixed || isFixed) && (
+      return (
         <TableCell
+          {...children.props}
           key={col.key}
-          value={value}
           expandIndent={i === 0 && expandIndent}
-          expandIcon={i === 0 && expandIcon} />
+          expandIcon={i === 0 && expandIcon}
+        >
+          {children.value}
+        </TableCell>
       )
     })
   },

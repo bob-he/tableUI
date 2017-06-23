@@ -261,9 +261,9 @@ export default createClass({
     })
   },
 
-  getRows(isFixedHeader, isFixedColumn, data, indentIndex, parentKey) {
-    const {columns, rowKey, rowClassName} = this.props
-    const {isFixed, rowStyles, rowHeights, expandRows} = this.state
+  getRows(isFixedHeader, columns, data, indentIndex, parentKey) {
+    const {rowKey, rowClassName} = this.props
+    const {rowStyles, rowHeights, expandRows} = this.state
     let rows = []
     for (let i = 0; i < data.length; i++) {
       let key = rowKey(data[i])
@@ -301,11 +301,9 @@ export default createClass({
           ref={rowRef}
           index={i}
           row={data[i]}
-          isFixed={isFixed}
           columns={columns}
           height={rowHeight}
           className={rowClass}
-          isFixedColumn={isFixedColumn}
           expandIcon={children && expandIcon}
           expandIndent={expandIndent}
           onExpand={this.handleExpand.bind(this, data[i], key)}
@@ -315,7 +313,7 @@ export default createClass({
       if (!isFixedHeader && children && expandRows[key]) {
         indentIndex += 1
         rows = rows.concat(
-          this.getRows(isFixedHeader, isFixedColumn, children, indentIndex, key)
+          this.getRows(isFixedHeader, columns, children, indentIndex, key)
         )
         indentIndex -= 1
       }
@@ -324,7 +322,7 @@ export default createClass({
   },
 
   // 表格boody
-  renderBody(isFixedHeader, isFixedColumn) {
+  renderBody(columns, isFixedHeader, isFixedColumn) {
     let {rowKey} = this.props
     let {data, fixedRowKey} = this.state
     const fixedRow = _.filter(data, (row) => {
@@ -337,7 +335,7 @@ export default createClass({
         data = []
       }
     }
-    const rows = this.getRows(isFixedHeader, isFixedColumn, data, 0)
+    const rows = this.getRows(isFixedHeader, columns, data, 0)
     return (
       <tbody ref={isFixedColumn ? '' : 'tableTbody'}>{rows}</tbody>
     )
@@ -434,7 +432,7 @@ export default createClass({
             columns={leftCloumns}
             onDrag={this.handleHeaderDrag}
             heights={columnsHeights} />
-          {this.renderBody(isFixedHeader, true)}
+          {this.renderBody(leftCloumns, isFixedHeader, true)}
         </table>
       </div>
     )
@@ -459,7 +457,7 @@ export default createClass({
               ordered={ordered}
               onSort={!isFixedHeader && this.handleSort}
               onDrag={this.handleHeaderDrag} />
-            {this.renderBody(isFixedHeader)}
+            {this.renderBody(columns, isFixedHeader)}
           </table>
         </div>
       </div>
