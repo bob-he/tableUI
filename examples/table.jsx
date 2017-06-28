@@ -19,13 +19,43 @@ const Page = createClass({
           className="table-bordered"
           width="100%"
           columns={[
-            {key: 'x', title: '时间', fixed: 'left', sort: sortBy},
-            {key: 'y0', title: '机锋机锋机锋', fixed: 'left', width: 140, sort: true},
-            {key: 'y1', title: 'UC', sort: true, width: 140, render: (val) => {return <div>{(val * 100) + '%'}</div>}},
-            {key: 'y2', title: '华为商店华为商店', width: 140, sort: true},
+            {key: 'x', title: '时间', sort: sortBy},
+            {key: 'y0', title: '机锋机锋机锋', width: 140, sort: true,
+              render: (val, record, index) => {
+                if (index === 3) {
+                  return {
+                    key: 'a',
+                    children: val,
+                    rowSpan: 2
+                  }
+                }
+                if (index === 4) {
+                  return {
+                    key: 'a',
+                    children: val,
+                    rowSpan: 0
+                  }
+                }
+                return val
+              }
+            },
+            // {key: 'y1', title: 'UC', sort: true, width: 140, colSpan: 2,
+            //   render: (val) => {return <div>{(val * 100) + '%'}</div>}
+            // },
+            // {key: 'y2', title: '华为商店华为商店', width: 140, colSpan: 0, sort: true},
             {key: 'y3', title: '联想游戏中心', width: 140, sort: true},
-            {key: 'y4', title: '陌陌游戏', sort: true, width: 140},
-            {key: 'y5', title: '游戏汇游戏汇游戏汇', width: 140},
+            {
+              title: '陌陌游戏',
+              children: [
+                {key: 'y4', title: '陌陌游戏', sort: true, width: 140},
+                {title: '游戏汇游戏汇游戏汇',
+                  children: [
+                    {key: 'y1', title: 'UC', sort: true, width: 140},
+                    {key: 'y2', title: '华为商店华为商店', sort: true}
+                  ]
+                }
+              ]
+            },
             {key: 'y6', title: 'OPPO游戏中心', width: 140},
             {key: 'y7', title: '百度', width: 140},
             {key: 'y8', title: '网易应用', width: 140},
@@ -485,10 +515,10 @@ const Page = createClass({
               'y8': 0.1875,
               'y9': 0.0453,
               'y10': 0.0584,
-              'x': '201656055604'
+              'x': '这是'
             },
             {
-              'y0': 93,
+              'y0': 122,
               'y1': 0.0,
               'y2': 0.0,
               'y3': 0.0149,
@@ -499,7 +529,7 @@ const Page = createClass({
               'y8': 0.0085,
               'y9': 0.0453,
               'y10': 0.0584,
-              'x': '201656055605'
+              'x': '合并'
             },
             {
               'y0': 818,

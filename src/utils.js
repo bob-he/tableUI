@@ -25,6 +25,28 @@ function getSplice(array, obj) {
   return getSplice(newArray, obj)
 }
 
+function level(array, key, childCounts) {
+  for (let i = 0; i < array.length; i++) {
+    const children = array[i][key]
+    if (children && children.length > 1) {
+      childCounts += level(children, key, childCounts)
+    }
+  }
+  return childCounts
+}
+
+function flatten(array, key, newArray) {
+  for (let i = 0; i < array.length; i++) {
+    const children = array[i][key]
+    if (children && children.length > 1) {
+      flatten(children, key, newArray)
+    } else {
+      newArray.push(array[i])
+    }
+  }
+  return newArray
+}
+
 export function getObject(obj) {
   if (!obj) {
     return obj
@@ -154,4 +176,12 @@ export function isSequential(array, obj) {
     return getSplice(array, obj)
   }
   return false
+}
+
+export function getFlatten(array, key) {
+  return flatten(array, key, [])
+}
+
+export function getLevels(array, key) {
+  return level(array, key, 1)
 }

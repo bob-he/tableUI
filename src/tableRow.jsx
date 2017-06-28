@@ -17,7 +17,9 @@ export default createClass({
     columns: PropTypes.array,
     height: PropTypes.number,
     index: PropTypes.number,
-    row: PropTypes.object
+    row: PropTypes.object,
+    nextRow: PropTypes.object,
+    prevRow: PropTypes.object
   },
 
   handleExpand() {
@@ -40,23 +42,35 @@ export default createClass({
   },
 
   renderTableTell() {
-    let {columns, row, index, expandIcon, expandIndent} = this.props
+    let {columns, row, prevRow, nextRow, index, expandIcon, expandIndent} = this.props
     return columns.map((col, i) => {
-      let children = {}
-      children.value = row[col.key]
+      let value = row[col.key]
+      let rowSpan = null
       if (col.render) {
         const result = col.render(row[col.key], row, index)
-        children.value = result.children || result
-        children.props = result.children ? result.props : {}
+        value = result.children || result
+        rowSpan = result.rowSpan
+        if (rowSpan > 1 && nextRow) {
+          const nextResult = col.render(nextRow[col.key], nextRow, index)
+          if (nextResult.rowSpan !== 0 && result.key !== nextResult.key) {
+            rowSpan = null
+          }
+        }
+        if (rowSpan === 0 && prevRow) {
+          const prevResult = col.render(prevRow[col.key], prevRow, index)
+          if (!prevResult.rowSpan && prevResult.rowSpan !== 0 && result.key !== prevResult.key) {
+            rowSpan = null
+          }
+        }
       }
       return (
         <TableCell
-          {...children.props}
           key={col.key}
+          rowSpan={rowSpan}
           expandIndent={i === 0 && expandIndent}
           expandIcon={i === 0 && expandIcon}
         >
-          {children.value}
+          {value}
         </TableCell>
       )
     })
