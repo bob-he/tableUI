@@ -1,9 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import createClass from 'create-react-class'
-import classNames from 'classnames'
 import TableCell from './tableCell.jsx'
-import _ from 'lodash'
 
 export default createClass({
   propTypes: {
@@ -23,7 +21,6 @@ export default createClass({
   },
 
   handleExpand() {
-    const {expandStatus} = this.props
     if (this.props.onExpand) {
       this.props.onExpand()
     }
@@ -77,7 +74,7 @@ export default createClass({
   },
 
   render() {
-    const {height, className, row} = this.props
+    const {height, className} = this.props
     return (
       <tr className={className}
         style={{height: height}}

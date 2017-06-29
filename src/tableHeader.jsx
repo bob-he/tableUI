@@ -1,11 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import createClass from 'create-react-class'
-import ReactDOM from 'react-dom'
 import Icon from 'iconui'
-import classNames from 'classnames'
 import {getLevels, getFlatten} from './utils.js'
-import _ from 'lodash'
 
 export default createClass({
   propTypes: {
@@ -71,7 +68,7 @@ export default createClass({
   },
 
   render() {
-    const {columns, heights} = this.props
+    const {columns} = this.props
     const levels = getLevels(columns, 'children')
     return (
       <thead>

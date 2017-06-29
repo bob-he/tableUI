@@ -45,15 +45,16 @@ export default createClass({
   },
 
   componentDidUpdate(nextProps) {
+    const self = this
     if (nextProps.data !== this.props.data) {
-      this.setState({
+      self.setState({
         data: this.getInitialData()
       })
     }
   },
 
   componentDidMount() {
-    const {fixedHeader, columns} = this.props
+    const {fixedHeader} = this.props
     if (fixedHeader) {
       window.onscroll = this.handleScroll
     }
@@ -79,15 +80,17 @@ export default createClass({
     return data
   },
 
-  setSumByWidth(rowNodes, index, columns, sumByWidth) {
+  setSumByWidth(rowNodes, index, columns, width) {
+    let nodeIndex = index
+    let sumByWidth = width
     const nodes = rowNodes[index].querySelectorAll('th')
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
       const offset = node.getBoundingClientRect()
       const colSpan = node.getAttribute('colSpan')
       if (colSpan) {
-        index += 1
-        this.setSumByWidth(rowNodes, index, columns[i].children, sumByWidth)
+        nodeIndex += 1
+        this.setSumByWidth(rowNodes, nodeIndex, columns[i].children, sumByWidth)
       } else {
         sumByWidth += (columns[i].width || offset.width)
       }
@@ -96,7 +99,7 @@ export default createClass({
   },
 
   setFixedColumn() {
-    const {fixedHeader, columns} = this.props
+    const {columns} = this.props
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     const rowNodes = tableHeader.querySelectorAll('tr')
@@ -110,14 +113,15 @@ export default createClass({
   },
 
   setWidths(rowNodes, index, columns, widths) {
+    let nodeIndex = index
     const nodes = rowNodes[index].querySelectorAll('th')
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
       const offset = node.getBoundingClientRect()
       const colSpan = node.getAttribute('colSpan')
       if (colSpan) {
-        index += 1
-        this.setWidths(rowNodes, index, columns[i].children, widths)
+        nodeIndex += 1
+        this.setWidths(rowNodes, nodeIndex, columns[i].children, widths)
       } else {
         widths.push({
           width: columns[i].width || offset.width
@@ -157,20 +161,20 @@ export default createClass({
     const tableOffset = this.refs.table.getBoundingClientRect()
     const tableHeader = ReactDOM.findDOMNode(this.refs.tableHeader)
     const tableHeaderOffset = tableHeader.getBoundingClientRect()
-    const keys = _.keys(expandRows)
     fixedRowKey = {}
-    for(let key in expandRows) {
+    for (let key in expandRows) {
       if (expandRows[key]) {
         const node = ReactDOM.findDOMNode(this.refs[`tr_${key}`])
         const nodeOffset = node.getBoundingClientRect()
         const refKeys = _.keys(this.refs).filter(item => {
           return item.indexOf(`tr_${key}_`) > -1
         })
-        const childsHeight = _.sumBy(refKeys, item => {
-          const childNode = ReactDOM.findDOMNode(this.refs[item])
+        let childsHeight = 0
+        for (let i = 0; i < refKeys.length; i++) {
+          const childNode = ReactDOM.findDOMNode(this.refs[refKeys[i]])
           const childNodeOffset = childNode.getBoundingClientRect()
-          return childNodeOffset.height
-        })
+          childsHeight += childNodeOffset.height
+        }
         if (nodeOffset.top < tableHeaderOffset.height) {
           if (nodeOffset.top - nodeOffset.height > -childsHeight) {
             fixedRowKey = {...fixedRowKey, [key]: key}
@@ -230,7 +234,6 @@ export default createClass({
   },
 
   handleHeaderDragMouseDown(index) {
-    const tableOffset = this.refs.table.getBoundingClientRect()
     this.setState({
       mouseDownDragIndex: index
     })
@@ -298,6 +301,7 @@ export default createClass({
   },
 
   getRows(isFixedHeader, columns, data, indentIndex, parentKey) {
+    let index = indentIndex
     const {rowKey, rowClassName} = this.props
     const {rowStyles, rowHeights, expandRows} = this.state
     let rows = []
@@ -323,12 +327,12 @@ export default createClass({
         expandInner = this.props.expandIcon
       }
       const expandIcon = (
-        <span className="table-row-expand-icon" 
+        <span className="table-row-expand-icon"
           onClick={this.handleExpand.bind(this, data[i], key)}>
           {expandInner}
         </span>
       )
-      const expandIndentStyle = {paddingLeft: 25 * indentIndex}
+      const expandIndentStyle = {paddingLeft: 25 * index}
       const expandIndent = <span style={expandIndentStyle}></span>
       const height = rowHeights[i] && rowHeights[i].height
       rows.push(
@@ -349,11 +353,11 @@ export default createClass({
           onMouseover={this.handleRowMouseover.bind(this, key)} />
       )
       if (!isFixedHeader && children && expandRows[key]) {
-        indentIndex += 1
+        index += 1
         rows = rows.concat(
-          this.getRows(isFixedHeader, columns, children, indentIndex, key)
+          this.getRows(isFixedHeader, columns, children, index, key)
         )
-        indentIndex -= 1
+        index -= 1
       }
     }
     return rows
@@ -383,7 +387,7 @@ export default createClass({
     let {columns} = this.props
     let {sumheight} = this.state
     columns = getFlatten(columns, 'children')
-    const {isFixed, columnWidths, headerHeights, mouseDownDragIndex} = this.state
+    const {isFixed, columnWidths, mouseDownDragIndex} = this.state
     let leftColumnsWidth = 0
     let columnsWidth = this.scrollLeft ? -this.scrollLeft : 0
     return columns.map((item, i) => {
@@ -399,7 +403,7 @@ export default createClass({
       return (
         <Drag
           key={i}
-          axis='x'
+          axis="x"
           leftWay
           rightWay
           style={{left: left, minHeight: sumheight}}
@@ -418,7 +422,7 @@ export default createClass({
     const {tableFixedColumnShadow, tableScrollShadow} = this.state
     return (
       <Drag
-        axis='x'
+        axis="x"
         className="table-drag-flag"
         leftWay={tableScrollShadow}
         rightWay={tableFixedColumnShadow}

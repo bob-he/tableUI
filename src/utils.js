@@ -26,13 +26,14 @@ function getSplice(array, obj) {
 }
 
 function level(array, key, childCounts) {
+  let counts = childCounts
   for (let i = 0; i < array.length; i++) {
     const children = array[i][key]
     if (children && children.length > 1) {
-      childCounts += level(children, key, childCounts)
+      counts += level(children, key, counts)
     }
   }
-  return childCounts
+  return counts
 }
 
 function flatten(array, key, newArray) {
@@ -163,7 +164,7 @@ export function getFilter(obj, array1, array2) {
     if (array2) {
       newArray = [array2[0]]
     }
-  } 
+  }
   return newArray
 }
 

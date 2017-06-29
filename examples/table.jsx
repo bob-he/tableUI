@@ -9,7 +9,6 @@ const Page = createClass({
     const sortBy = (row) => {
       return row.x.length
     }
-    
     return (
       <div style={{width: 900, margin: '200px 100px'}}>
         <Table
@@ -22,14 +21,14 @@ const Page = createClass({
             {key: 'x', title: '时间', sort: sortBy},
             {key: 'y0', title: '机锋机锋机锋', width: 140, sort: true,
               render: (val, record, index) => {
-                if (index === 3) {
+                if (record.x === '这是') {
                   return {
                     key: 'a',
                     children: val,
                     rowSpan: 2
                   }
                 }
-                if (index === 4) {
+                if (record.x === '合并') {
                   return {
                     key: 'a',
                     children: val,

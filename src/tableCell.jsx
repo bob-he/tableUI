@@ -15,7 +15,7 @@ export default createClass({
   render() {
     const {children, rowSpan, expandIcon, expandIndent} = this.props
     return rowSpan !== 0 && (
-      <td rowSpan={rowSpan}>
+      <td rowSpan={rowSpan > 1 ? rowSpan : null}>
         {expandIndent}
         {expandIcon}
         {children}
