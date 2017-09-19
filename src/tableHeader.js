@@ -1,36 +1,34 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import createClass from 'create-react-class'
 import Icon from 'iconui'
 import {getLevels, getFlatten} from './utils.js'
 
-export default createClass({
-  propTypes: {
-    onDrag: PropTypes.func,
+export default class TableHeader extends React.Component {
+  static propTypes = {
     columns: PropTypes.array,
     heights: PropTypes.array,
     sumheight: PropTypes.number,
     onSort: PropTypes.any,
     ordered: PropTypes.object
-  },
+  }
 
-  handleSort(key, func) {
+  handleSort = (key, func) => {
     const {ordered} = this.props
     if (typeof this.props.onSort === 'function') {
       this.props.onSort({
         [key]: ordered[key] === 'asc' ? 'desc' : 'asc'
       }, func)
     }
-  },
+  }
 
-  getCell(columns, rows, index, type) {
-    const {ordered, heights, sumheight} = this.props
-    const levels = getLevels(columns, 'children')
+  getCell = (columns, rows, index, type) => {
+    let {ordered, heights, sumheight} = this.props
+    let levels = getLevels(columns, 'children')
     let height = sumheight
     if (type) {
       height = heights[index] && heights[index].height
     }
-    const thColumns = columns.map((col, i) => {
+    let thColumns = columns.map((col, i) => {
       let sortIcon = <Icon type="sort" />
       if (ordered[col.key] === 'asc') {
         sortIcon = <Icon type="sortasc" />
@@ -38,13 +36,8 @@ export default createClass({
       if (ordered[col.key] === 'desc') {
         sortIcon = <Icon type="sortdesc" />
       }
-      const sort = (
-        <span
-          className="table-sort"
-          onClick={this.handleSort.bind(this, col.key, col.sort)}
-        >
-          {sortIcon}
-        </span>
+      let sort = (
+        <span className="table-sort">{sortIcon}</span>
       )
       let rowSpan = levels
       let colSpan = col.colSpan
@@ -53,11 +46,23 @@ export default createClass({
         colSpan = getFlatten(col.children, 'children', 1).length
         this.getCell(col.children, rows, (index + 1), type)
       }
-      const style = {
+      let style = {
         display: col.colSpan === 0 ? 'none' : ''
       }
+      let sortEvent = {}
+      if (col.sort) {
+        sortEvent = {
+          onClick: this.handleSort.bind(this, col.key, col.sort)
+        }
+      }
       return (
-        <th key={i} rowSpan={rowSpan > 1 ? rowSpan : null} colSpan={colSpan > 1 ? colSpan : null} style={style}>
+        <th
+          key={i}
+          style={style}
+          rowSpan={rowSpan > 1 ? rowSpan : null}
+          colSpan={colSpan > 1 ? colSpan : null}
+          {...sortEvent}
+        >
           {col.title}
           {col.sort && sort}
         </th>
@@ -65,9 +70,9 @@ export default createClass({
     })
     rows.unshift(<tr key={index} style={{height: height}}>{thColumns}</tr>)
     return rows
-  },
+  }
 
-  render() {
+  render () {
     const {columns} = this.props
     const levels = getLevels(columns, 'children')
     return (
@@ -76,4 +81,4 @@ export default createClass({
       </thead>
     )
   }
-})
+}

@@ -1,11 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import createClass from 'create-react-class'
-import TableCell from './tableCell.jsx'
+import TableCell from './tableCell.js'
 
-export default createClass({
-  propTypes: {
-    expandStatus: PropTypes.bool,
+export default class TableHeader extends React.Component {
+  static propTypes = {
     className: PropTypes.string,
     onMouseover: PropTypes.func,
     onMouseout: PropTypes.func,
@@ -18,27 +16,27 @@ export default createClass({
     row: PropTypes.object,
     nextRow: PropTypes.object,
     prevRow: PropTypes.object
-  },
+  }
 
-  handleExpand() {
+  handleExpand = () => {
     if (this.props.onExpand) {
       this.props.onExpand()
     }
-  },
+  }
 
-  handleRowMouseover() {
+  handleRowMouseover = () => {
     if (this.props.onMouseover) {
       this.props.onMouseover()
     }
-  },
+  }
 
-  handleRowMouseout() {
+  handleRowMouseout = () => {
     if (this.props.onMouseout) {
       this.props.onMouseout()
     }
-  },
+  }
 
-  renderTableTell() {
+  renderTableTell = () => {
     let {columns, row, prevRow, nextRow, index, expandIcon, expandIndent} = this.props
     return columns.map((col, i) => {
       let value = row[col.key]
@@ -71,19 +69,19 @@ export default createClass({
         </TableCell>
       )
     })
-  },
+  }
 
-  render() {
+  render () {
     const {height, className} = this.props
     return (
       <tr className={className}
         style={{height: height}}
         onClick={this.handleExpand}
-        onMouseOut={this.handleRowMouseout}
-        onMouseOver={this.handleRowMouseover}
+        onMouseLeave={this.handleRowMouseout}
+        onMouseEnter={this.handleRowMouseover}
       >
         {this.renderTableTell()}
       </tr>
     )
   }
-})
+}

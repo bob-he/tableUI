@@ -1,21 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import createClass from 'create-react-class'
 
-export default createClass({
-  propTypes: {
+export default class TableColGroup extends React.Component {
+  static propTypes = {
     columns: PropTypes.array,
     widths: PropTypes.array
-  },
+  }
 
-  render() {
+  render () {
     const {columns, widths} = this.props
     const colgroup = columns.map((col, i) => {
-      const width = widths[i] && widths[i].width
+      const width = widths[i] || col.width
       return (
         <col key={col.key} style={{width: width, minWidth: width}} />
       )
     })
     return <colgroup>{colgroup}</colgroup>
   }
-})
+}

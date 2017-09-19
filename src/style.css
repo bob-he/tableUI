@@ -5,23 +5,8 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-.table {
-  background-color: #FFFFFF;
-  border-spacing: 0;
-  border-collapse: collapse;
-  font-size: 12px;
-}
 
-.table > thead > tr > th {
-  height: 36px;
-  padding: 5px 8px;
-  text-align: left;
-  background-color: #eef2f9;
-  border: 1px solid #e1e5f3;
-  vertical-align: middle;
-}
-
-.header-drag-flag {
+.de-table-header-drag-flag {
   position: absolute;
   top: 0;
   width: 10px;
@@ -29,17 +14,17 @@
   background: transparent;
   border-radius: 0;
   vertical-align: top;
-  cursor: move;
+  cursor: col-resize;
   z-index: 3;
 }
 
-.header-drag-flag-selected {
-  cursor: move;
+.de-table-header-drag-flag-selected {
+  cursor: col-resize;
   height: 100%;
   bottom: 0;
 }
 
-.header-drag-flag-selected .header-drag-flag-inner {
+.de-table-header-drag-flag-selected .de-table-header-drag-flag-inner {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -48,42 +33,103 @@
   width: 2px;
   border: 1px dotted green;
 }
-
-.table-wrapper {
+.drag-bar {
+  position: absolute;
+}
+.de-table-wrapper {
   position: relative;
   overflow: hidden;
+  zoom: 1;
 }
-.table > tbody > tr > td {
+.de-table-container {
+  position: relative;
+}
+.de-table {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-spacing: 0;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.de-table > thead > tr > th {
+  height: 36px;
+  padding: 5px 8px;
+  text-align: left;
+  background-color: #eef2f9;
+  border: 1px solid #e1e5f3;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.de-table > thead > tr > th > .table-sort {
+  display: inline-block;
+  overflow: hidden;
+  width: 16px;
+  height: 16px;
+  vertical-align: top;
+}
+.de-table > tbody > tr > td {
   padding: 5px 8px;
   height: 36px;
-  border: 1px solid #e1e5f3;
+  border-bottom: 1px solid #e1e5f3;
 }
-
-.table > tbody > tr:hover,
-.table > tbody > tr.table-row-hover {
+.de-table > tbody > tr:hover,
+.de-table > tbody > tr.table-row-hover {
   background-color: #eaf8fe;
 }
 
-.table > tbody > tr.table-row-selected {
+.de-table > tbody > tr.table-row-selected {
   background-color: #eef2f9;
 }
-
-.table-fixed-column {
+.de-table-scroll {
+  position: relative;
+}
+.de-table-header {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+.de-table-body {
+  position: relative;
+  z-index: 1;
+}
+.de-table-scroll .de-table-hand-paper {
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
+  cursor: grab
+}
+.de-table-scroll .de-table-hand-grab {
+  cursor: -webkit-grabbing;
+  cursor: -moz-grabbing;
+  cursor: grabbing;
+}
+.de-table-fixed-left {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 1;
+  z-index: 4;
+  overflow: hidden;
 }
-
-.table-fixed-column-shadow {
-  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, 0.2);
+.de-table-margin-right {
+  margin-right: -20px;
 }
-
-.table-scroll {
-  overflow-x: scroll;
+.de-table-fixed-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 4;
 }
-
-.table-scroll-shadow:before {
+.de-table-fixed-left-shadow {
+  box-shadow: 6px 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+.de-table-fixed-right-shadow {
+  box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.2);
+}
+.de-table-scroll > .de-table-scroll-shadow {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.de-table-scroll > .de-table-scroll-shadow:before {
   content: "";
   position: absolute;
   width: 15px;
@@ -92,88 +138,5 @@
   bottom: 0;
   right: -15px;
   box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.2);
-}
-
-.table-absolute-header {
-  position: absolute;
-  top: 0;
   z-index: 2;
-  overflow: hidden;
-}
-
-.table-fixed-header {
-  padding-bottom: 8px;
-  position: fixed;
-  top: 0;
-  z-index: 3;
-  overflow: hidden;
-}
-
-.table-fixed-header > .table-header-inner {
-  overflow: hidden;
-  box-shadow: 0 0 5px #DDDDDD;
-}
-
-.table-fixed-header .table-scroll,
-.table-absolute-header .table-scroll {
-  overflow: hidden;
-}
-
-.table-row-expand-icon {
-  cursor: pointer;
-}
-
-.table-sort {
-  display: inline-block;
-  vertical-align: middle;
-  cursor: pointer;
-}
-
-.table-scrollbar {
-  position: absolute;
-  top: 100px;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  margin-left: -100px;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 99em;
-  cursor: pointer;
-}
-
-.table-drag-flag {
-  position: absolute;
-  left: 50%;
-  margin-left: -20px;
-  top: 200px;
-  z-index: 2;
-  line-height: 40px;
-}
-
-.table-drag-flag .icon-caretleft {
-  margin-left: -5px;
-  font-size: 35px;
-  color: #FFFFFF;
-}
-
-.table-drag-flag .icon-caretright {
-  margin-left: 5px;
-  font-size: 35px;
-  color: #FFFFFF;
-}
-
-.table-drag-flag .icon + .icon {
-  margin-left: -20px;
-}
-
-.table-wrapper .table-drag-flag {
-  display: none;
-}
-
-.table-wrapper:hover .table-drag-flag {
-  display: block;
-}
-
-.table > tbody > tr.td-red {
-  background-color: #FF0000!important; 
 }
