@@ -53,7 +53,7 @@ export default class Table extends React.Component {
   }
 
   componentDidUpdate = (nextProps) => {
-    var self = this
+    let self = this
     if (nextProps.data.toString() !== this.props.data.toString()) {
       self.setState({
         isFixedHeader: false,
@@ -84,7 +84,7 @@ export default class Table extends React.Component {
       columnsWidths: [],
       rowHeights: [],
       tableWidth: null
-    }, function () {
+    }, () => {
       this.setTable()
     })
   }
@@ -202,8 +202,13 @@ export default class Table extends React.Component {
         nodeIndex += 1
         this.getWidths(nodes, columns[i].children, widths, nodeIndex)
       } else {
+        let userAgent = window.navigator.userAgent.toLowerCase()
+        let width = Math.round(offset.width)
+        if (userAgent.indexOf('firefox') > -1) {
+          width = offset.width
+        }
         widths.push({
-          offsetWidth: offset.width,
+          offsetWidth: width,
           customWidth: columns[i] && columns[i].width
         })
       }
@@ -492,8 +497,14 @@ export default class Table extends React.Component {
     if (type === 'left' && sideColumns.length === 0) {
       sideColumns = columns.slice(0, 1)
     }
+    if (type === 'right') {
+      sideColumns = columns.slice(columns.length - sideColumns.length, columns.length)
+    }
     let columnsLength = getFlatten(sideColumns, 'children').length
     let sideColumnsWidths = columnsWidths.slice(0, columnsLength)
+    if (type === 'right') {
+      sideColumnsWidths = columnsWidths.slice(columnsWidths.length - sideColumns.length, columnsWidths.length)
+    }
     let sideWidth = _.sum(sideColumnsWidths) + borderWidth
     return {
       width: type ? sideWidth : tableWidth,
@@ -533,8 +544,10 @@ export default class Table extends React.Component {
       {[`${tableName}-${type}-shadow`]: shadows[type]}
     )
     let scrollHeight = height
-    if (height && !isFixedHeader) {
-      scrollHeight = height + _.sum(headerHeights)
+    if (isFixedHeader) {
+      scrollHeight = height || _.sum(rowHeights)
+    } else {
+      scrollHeight = (height || _.sum(rowHeights)) + _.sum(headerHeights)
       if (type !== 'scroll') {
         scrollHeight = null
       }

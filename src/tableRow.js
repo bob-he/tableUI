@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import TableCell from './tableCell.js'
+import _ from 'lodash'
 
 export default class TableHeader extends React.Component {
   static propTypes = {
@@ -58,12 +59,13 @@ export default class TableHeader extends React.Component {
           }
         }
       }
+      let obj = _.find(columns, {key: col.key})
       return (
         <TableCell
           key={col.key}
           rowSpan={rowSpan}
-          expandIndent={i === 0 && expandIndent}
-          expandIcon={i === 0 && expandIcon}
+          expandIndent={i === 0 && obj.fixed === 'left' && expandIndent}
+          expandIcon={i === 0 && obj.fixed === 'left' && expandIcon}
         >
           {value}
         </TableCell>
